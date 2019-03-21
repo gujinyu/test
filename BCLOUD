@@ -1,0 +1,2 @@
+BUILD_SUBMITTER -u . -e FIS -x -m baidu/intelligent-map/daqian-pmp-web -c "cd baidu/intelligent-map/daqian-pmp-web && sh build.sh"
+

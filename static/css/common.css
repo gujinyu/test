@@ -1,0 +1,9 @@
+/**
+ * author wangchunhong@baidu.com
+ * 公用样式
+ */
+
+ /*清除浮动*/
+.clear {
+    clear: both;
+}

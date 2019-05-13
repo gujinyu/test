@@ -160,7 +160,7 @@
                     <input type="hidden" name='query_start_time' value="">
                     <input type="hidden" name='query_end_time' value="">
                     <input type="hidden" name='status' v-model="search.selectState">
-                    <input type="hidden" name='project_status' v-model="search.selectState">
+                    <input type="hidden" name='project_status' v-model="search.project_status">
                     <input type="hidden" name='task_type' v-model="search.selectTaskType">
                     <input type="hidden" name='tile_id_list' v-model="search.tileID">
                     <input type="hidden" name='query_or_export_data' value='13'>
@@ -172,9 +172,8 @@
                     <input type="hidden" name="admittance_reason[]" v-if="search.selectAllowInPassResult[1]" v-model="search.selectAllowInFailResult[1]">
                     <input type="hidden" name="admittance_reason[]" v-if="search.selectAllowInPassResult[2]" v-model="search.selectAllowInFailResult[2]">
                     <el-button class="left-button" size="medium" type="primary" plain native-type="submit">导出</el-button>
-                    <el-button v-show="search.selectSection == '3001'" class="right-div" type="primary" size="medium"
-                        @click="downloadLogs()" :disabled="accessDisabled">log批量下载</el-button>
                 </form>
+                <el-button class="right-div" type="primary" size="medium" @click="downloadLogs()" :disabled="accessDisabled">log批量下载</el-button>
             </div>
             <!-- 按钮区 end-->
             <div class="segmenting-line"></div>
@@ -270,6 +269,8 @@
                         v-if="search.selectSection != '31'"></el-table-column>
                     <el-table-column prop="operation_task_id" show-overflow-tooltip label="关联作业任务编号" width="135"></el-table-column>
                     <el-table-column prop="show_operator" show-overflow-tooltip label="作业员" width="105"></el-table-column>
+                    <el-table-column prop="log_data_version" label="质检log版本" show-overflow-tooltip width="135"></el-table-column>
+                    <el-table-column prop="diff_log_data_version" label="差分log版本" show-overflow-tooltip width="135"></el-table-column>
                     <el-table-column prop="memo" label="备注" show-overflow-tooltip min-width="100"></el-table-column>
                 </el-table>
             </div>
@@ -325,14 +326,26 @@
             </el-form>
         </el-dialog>
         <!-- 分配任务 end-->
-        <!-- 生产准入Log批量下载 begin-->
-        <el-dialog title="生产准入log批量下载" :visible.sync="dialogDownloadLogVisible" :close-on-click-modal="false">
-            <el-form ref="downloadLogData" :model="downloadLogData" label-width="120px" class="demo-dynamic">
-                <el-form-item label="作业任务列表" required prop="taskIDS" :rules="[{ required: true, message: '请选择要下载准入log的外业任务', trigger: 'blur'},{ required: true, message: '请选择要下载准入log的外业任务', trigger: 'change'}]">
-                    <el-input type="textarea" readonly placeholder="请选择要下载准入log的外业任务" :autosize="{ minRows: 5, maxRows: 5}"
+        <!-- Log批量下载 begin-->
+        <el-dialog title="log批量下载" :visible.sync="dialogDownloadLogVisible" :close-on-click-modal="false">
+            <el-form ref="downloadLogData" :model="downloadLogData" label-width="120px" class="demo-dynamic" v-loading="downloadLoading" element-loading-text="拼命下载中">
+                <el-form-item label="质检任务列表" required prop="taskIDS" :rules="[{ required: true, message: '请选择要下载log的质检任务', trigger: 'blur'},{ required: true, message: '请选择要下载准入log的质检任务', trigger: 'change'}]">
+                    <el-input type="textarea" readonly placeholder="请选择要下载log的质检任务" :autosize="{ minRows: 5, maxRows: 5}"
                         v-model="downloadLogData.taskIDS"></el-input>
                 </el-form-item>
-                <p class="tipInfo">提示：已选择<b>{{downloadLogData.postTaskIDS.length}}</b>条记录（去重后）</p>
+                <p class="tipInfo">提示：已选择<b>{{downloadLogData.postTaskIDS.length}}</b>条记录（去重后）,选择任务的log将合并为一个文件下载</p>
+                <el-form-item label="文件类型" required style="margin-bottom: 10px">
+                    <div style="float:left;display:inline-block;">
+                        <el-radio v-model="downloadLogData.fileType" label="qc">质检log</el-radio>
+                        <el-radio v-model="downloadLogData.fileType" label="diff" :disabled="search.selectSection === '3001'">差分log</el-radio>
+                    </div>
+                </el-form-item>
+                <el-form-item label="文件格式" required style="margin-bottom: 10px">
+                    <div style="float:left;display:inline-block;">
+                        <el-radio v-model="downloadLogData.fileFormat" label="csv">csv格式</el-radio>
+                        <el-radio v-model="downloadLogData.fileFormat" label="pb">proto格式</el-radio>
+                    </div>
+                </el-form-item>
                 <el-form-item>
                     <el-button type="primary" @click="submitDownloadLogForm()">确定</el-button>
                     <!--<el-button @click="resetForm('inSubProject')">重置</el-button>-->
@@ -340,7 +353,7 @@
                 </el-form-item>
             </el-form>
         </el-dialog>
-        <!-- 生产准入Log批量下载 end-->
+        <!-- Log批量下载 end-->
     </div>
 </template>
 
@@ -367,7 +380,7 @@
                 forArrSelectDiv: [{
                     // v_s:这个是daqian_selectCheck.vue组件下拉菜单的数据结构
                     name: "项目状态",
-                    objectType: "3", // v_s: 这个是项目状态的默认值
+                    objectType: "0", // v_s: 这个是项目状态的默认值
                     showBoxType: "el-select", // v_s:判断要渲染的标签类型
                     AllTypesSelect: {
                         "0": "全部",
@@ -399,6 +412,7 @@
                 task_list: [],
                 task_list_length: "0",
                 nowSelectSubprojectID: 0,
+                nowSelectSection: '3001',
                 exportData: {
                     statisticsType: "1",
                     qualityCheckResult: "",
@@ -424,9 +438,12 @@
                 loading: true,
                 emptyText: "查询中",
                 accessDisabled: false,
+                downloadLoading: false, // log下载操作响应等待提示
                 downloadLogData: {
                     taskIDS: "",
-                    postTaskIDS: []
+                    postTaskIDS: [],
+                    fileFormat: 'csv',
+                    fileType: 'qc'
                 },
                 dialogDownloadLogVisible: false,
                 selectAllFlag: false,
@@ -672,6 +689,7 @@
                 this.task_list = task_list;
                 this.task_list_length = this.task_list.length;
                 this.nowSelectSubprojectID = this.search.selectSubprojectID;
+                this.nowSelectSection = this.search.selectSection;
                 var query_qualityCheckInfo = {
                     project_status: reQpassVal(this.forArrSelectDiv, '项目状态'), // v_s: 项目状态
                     user_id: sessionStorage.userid,
@@ -783,8 +801,14 @@
                 this.$refs.qualityCheckTasksTable.clearSort();
                 this.search.sort_field_name = "quality_check_task_id desc";
                 if (event !== "sectionChange") {
-                    // v_s: 方法参数 1、要遍历的数组2、要赋值的对象名称3、要赋的值4、赋值的方向（子传父，父传子）
-                    parentSonPassVal(this.forArrSelectDiv, '项目状态', '3', 'son_parent')
+                    // gu：当所属项目为主项目或全部时，项目状态为进行中；当为子项目时项目状态为全部
+                    if(validateData(this.search.selectSubprojectID)){
+                        this.search.project_status = "0";
+                        parentSonPassVal(this.forArrSelectDiv, "项目状态", "0", "son_parent"); // 复位项目状态筛选框
+                    } else {
+                        this.search.project_status = "3";
+                        parentSonPassVal(this.forArrSelectDiv, "项目状态", "3", "son_parent"); // 复位项目状态筛选框
+                    }
                     this.search.tileID = "";
                     this.resetselectProjectData = true;
                 } else {
@@ -815,6 +839,10 @@
                     this.downloadLogData.postTaskIDS = [].concat(JSON.parse(JSON.stringify(selectData.postTaskIDS)));
                     this.downloadLogData.taskIDS = selectData.taskIDS;
                     this.dialogDownloadLogVisible = true;
+                    this.downloadLoading = false;
+                    if (this.nowSelectSection === '3001') {
+                        this.downloadLogData.fileType = 'qc';
+                    }
                 } else {
                     alertInfo(this, "warning", "请选择要下载log的任务");
                 }
@@ -846,21 +874,25 @@
             submitDownloadLogForm: function () {
                 this.$refs["downloadLogData"].validate(valid => {
                     if (valid) {
+                        this.downloadLoading = true;
                         var postDownloadLogData = {
                             user_id: sessionStorage.userid,
-                            sub_project_id: this.search.selectSubprojectID,
-                            process_segment: 3001,
+                            sub_project_id: this.nowSelectSubprojectID,
+                            process_segment: this.nowSelectSection,
+                            format: this.downloadLogData.fileFormat,
+                            type: this.downloadLogData.fileType,
                             qc_task_list: this.downloadLogData.postTaskIDS
                         };
                         this.$http.post("/api/generate_log_download_url", postDownloadLogData).then(
                             response => {
                                 response = response.body;
                                 var data = response.data;
+                                this.downloadLoading = false;
                                 if (data.errno === 0) {
                                     alertInfo(
                                         this,
                                         "success",
-                                        "<a href=" + data.data.log_download_url + ">点击下载log</a>",
+                                        "log下载成功，<a class='a-download' href=" + data.data.log_download_url + ">点击保存</a>",
                                         () => {
                                             this.dialogDownloadLogVisible = false;
                                         }
@@ -979,6 +1011,14 @@
             SelectProjects: function (data) {
                 this.search.selectProjectID = data.project_id;
                 this.search.selectSubprojectID = data.sub_project_id;
+                 // gu：当所属项目为主项目或全部时，项目状态为进行中；当为子项目时项目状态为全部
+                if(validateData(this.search.selectSubprojectID)){
+                    this.search.project_status = "0";
+                    parentSonPassVal(this.forArrSelectDiv, "项目状态", "0", "son_parent"); // 复位项目状态筛选框
+                } else {
+                    this.search.project_status = "3";
+                    parentSonPassVal(this.forArrSelectDiv, "项目状态", "3", "son_parent"); // 复位项目状态筛选框
+                }
                 if (data.init) {
                     this.searchQualityCheckTasks();
                 }
@@ -990,7 +1030,6 @@
     };
 
 </script>
-
 <style scoped lang="scss" rel="stylesheet/scss">
     $width: 100%;
     $height: 100%;

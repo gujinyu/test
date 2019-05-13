@@ -110,7 +110,7 @@
                 <el-form-item label="所在城市">
                     <el-col :span="16">
                         <!--<el-input v-model="inCarDay.city" disabled></el-input>-->
-                        <Cascader style="float:left" :data="options" size="large" filterable v-model="edit.showCity" @on-change="editCityChange" placeholder="请选择城市"></Cascader>
+                        <el-cascader style="float:left" :options="options" size="large" filterable v-model="edit.showCity" @change="editCityChange" :show-all-levels="false" placeholder="请选择城市"></el-cascader>
                     </el-col>
                 </el-form-item>
                 <el-form-item label="基站编号">

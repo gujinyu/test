@@ -7,7 +7,7 @@
                     <!-- 筛选条件 begin-->
                     <div class="selectDiv">
                         <span class="align-right">所属主项目：</span>
-                        <selectMainProject @selectChange="search.mainProjectID = $event" :projectId="search.mainProjectID" @init="searchProject" clearable ref="selectMainProject">
+                        <selectMainProject @selectChange="search.mainProjectID = $event" :projectId="search.mainProjectID" @init="searchProject({init:true})" clearable ref="selectMainProject">
                         </selectMainProject>
                     </div>
                     <div class="selectDiv">
@@ -26,7 +26,7 @@
                             </template>
                         </el-select>
                     </div>
-                      <div class="selectDiv">
+                    <div class="selectDiv">
                         <span class="align-right">子项目编号：</span>
                         <el-popover class="input-style" placement="bottom-start" title="仅可输入数字、空格、分号、逗号，空格/分号/逗号分隔多个查询条件" trigger="focus" :content="search.subProjectId">
                             <el-input class="input-style-1" slot="reference" size="medium" :change="formatSearchInput()" v-model="search.subProjectId" clearable placeholder="一次可以搜索多个子项目编号">
@@ -41,12 +41,11 @@
                         </el-popover>
                     </div>
                     <div class="selectDiv">
-                        <span class="align-right">补采状态：</span>
-                        <el-select v-model="search.wy_collection_status" placeholder="全部" clearable size="medium">
-                            <template>
-                                <el-option v-for="(item,index) in this.datasMap.allWyCollectionStatus" :key="index" :value="index" :label="item"></el-option>
-                            </template>
-                        </el-select>
+                        <span class="align-right">数据分支：</span>
+                        <el-popover class="input-style" placement="bottom-start" title="支持双向模糊查询，所有查询支持空格、分号、逗号(中英文)分隔多个查询条件" trigger="focus" :content="search.roadBranch">
+                            <el-input class="input-style-1" slot="reference" size="medium" v-model="search.roadBranch" clearable placeholder="搜索数据分支，支持模糊搜索">
+                            </el-input>
+                        </el-popover>
                     </div>
                     <div class="selectDiv">
                         <span class="align-right">规范版本：</span>
@@ -105,14 +104,27 @@
                             </el-input>
                         </el-popover>
                     </div> -->
+
                     <div class="selectDiv">
-                        <span class="align-right">数据分支：</span>
-                        <el-popover class="input-style" placement="bottom-start" title="支持双向模糊查询，所有查询支持空格、分号、逗号(中英文)分隔多个查询条件" trigger="focus" :content="search.roadBranch">
-                            <el-input class="input-style-1" slot="reference" size="medium" v-model="search.roadBranch" clearable placeholder="搜索数据分支，支持模糊搜索">
-                            </el-input>
-                        </el-popover>
+                        <span class="align-right">补采状态：</span>
+                        <el-select v-model="search.wy_collection_status" placeholder="全部" clearable size="medium">
+                            <template>
+                                <el-option v-for="(item,index) in this.datasMap.allWyCollectionStatus" :key="index" :value="index" :label="item"></el-option>
+                            </template>
+                        </el-select>
                     </div>
-                  
+                    <div class="selectDiv">
+                        <span class="align-right">负责人：</span>
+                        <el-select filterable clearable placeholder="全部" v-model="search.charge_user" size="medium">
+                            <el-option v-for="item in chargeUserData" :label="item.user_name" :value="item.user_id" :key="item.user_id"></el-option>
+                        </el-select>
+                        <!-- <span class="align-right">负责人：</span>
+                        <el-popover class="input-style" placement="bottom-start" title="支持双向模糊查询，所有查询支持空格、分号、逗号(中英文)分隔多个查询条件" trigger="focus" :content="search.charge_user">
+                            <el-input class="input-style" slot="reference" size="medium" v-model="search.charge_user" clearable placeholder="搜索负责人，支持模糊搜索">
+                            </el-input>
+                        </el-popover> -->
+                    </div>
+
                 </div>
                 <div class="open">
                     <div class="more" @click="collapseFlag=!collapseFlag">
@@ -133,41 +145,20 @@
         <!-- 子项目列表 begin-->
         <div class="table-area">
             <div class="btn-list">
-                <span class="titlespan">项目列表</span>
-                <!-- <span class="span-left">共找到</span>
-                <span class="span-totalNumber">{{pageInfo.totalNumber}}</span>
-                <span class="span-right">个子项目</span> -->
-                <form action="/api/query_sub_project" enctype="application/json">
-                    <input type="hidden" name="project_id" v-model="search.mainProjectID">
-                    <input type="hidden" name="sub_project_name" v-model="search.inProjectName">
-                    <input type="hidden" name="city_name" v-model="search.selectCity">
-                    <input type="hidden" name="data_standard_version" v-model="search.dataStandardVersion">
-                    <input type="hidden" name="source_sub_project_name" v-model="search.sourceSubProjectName">
-                    <input type="hidden" name="source_results_sub_library_name" v-model="search.sourceSubLibararyName">
-                    <input type="hidden" name="sub_project_process_type" v-model="search.subProjectProcessType">
-                    <input type="hidden" name="query_start_time" v-bind:value="search.startTime">
-                    <input type="hidden" name="query_end_time" v-bind:value="search.endTime">
-                    <input type="hidden" name="query_or_export_data" value="1">
-                    <input type="hidden" name="path_name" value="项目列表">
-                    <input type="hidden" name="sort_field_name" v-model="search.sort_field_name">
-                    <input type="hidden" name="wy_collection_status" v-model="search.wy_collection_status">
-                    <input type="hidden" name="sub_project_id" v-model="search.subProjectId">
-                    <input type="hidden" name="road_branch" v-model="search.roadBranch">
-                    <input type="hidden" name="project_status" v-model="search.project_status">
-                    <input type="hidden" name="qc_rule_version" v-model="search.qc_rule_version">
-                    <!-- <input type="hidden" name="qc_standard_version" v-model="search.qc_standard_version"> -->
-                    <el-button class="left-button" :disabled="accessDisabled" size="medium" type="primary" plain native-type="submit">导出</el-button>
-                </form>
+                <span class="titlespan">子项目列表</span>
+                <el-button class="left-button" size="medium" type="primary" plain @click="exportFile">导出</el-button>
                 <el-dropdown class="right-div menu-el-dropdown">
-                    <el-button type="primary" size="medium" :disabled="accessDisabled">发布成果库
+                    <el-button type="primary" size="medium" :disabled="accessDisabled">批量操作
                         <i class="el-icon-arrow-down el-icon--right"></i>
                     </el-button>
                     <el-dropdown-menu slot="dropdown" class="menu-el-dropdown-menu">
+                        <el-dropdown-item :disabled="accessDisabled" class="menu-center" @click.native="statusManger()">状态管理</el-dropdown-item>
+                        <el-dropdown-item class="menu-center" @click.native="batchEdit()">批量编辑</el-dropdown-item>
                         <el-dropdown-item class="menu-center" @click.native="addSubLibrary()">添加至成果库</el-dropdown-item>
                         <el-dropdown-item class="menu-center-last" @click.native="createLibrary()">生成成果库</el-dropdown-item>
                     </el-dropdown-menu>
                 </el-dropdown>
-                <el-button class="right-div" type="primary" :disabled="accessDisabled" size="medium" @click="statusManger()">状态管理</el-button>
+                <!-- <el-button class="right-div" type="primary" v-if="userPermission == 1 || userPermission == 2" :disabled="accessDisabled" size="medium" @click="statusManger()">状态管理</el-button> -->
                 <el-button class="right-div" type="primary" :disabled="accessDisabled" size="medium" @click="createSubproject()">新建子项目</el-button>
             </div>
             <!-- 按钮区 end-->
@@ -192,12 +183,16 @@
                     <el-table-column prop="show_machine_type" label="机器类型" show-overflow-tooltip width="95"></el-table-column>
                     <el-table-column prop="data_standard_version" show-overflow-tooltip label="规范版本" width="90"></el-table-column>
                     <el-table-column prop="qc_rule_version" show-overflow-tooltip label="质检项版本" width="120"></el-table-column>
+                    <el-table-column prop="show_flow_version" label="环境版本" show-overflow-tooltip width="150"></el-table-column>
+                    <el-table-column prop="algorithm_parameters" label="算法参数" show-overflow-tooltip width="80"></el-table-column>
+                    <el-table-column prop="mqc_conf_str" show-overflow-tooltip label="自动质检流程" width="120"></el-table-column>
                     <el-table-column prop="car_day_count" label="新增外业任务数" show-overflow-tooltip sortable="custom" width="145"></el-table-column>
                     <el-table-column prop="plan_start_time" label="外业采集开始时间" show-overflow-tooltip width="155"></el-table-column>
                     <el-table-column prop="plan_end_time" label="外业采集结束时间" show-overflow-tooltip width="160"></el-table-column>
                     <el-table-column prop="data_trunk_name" show-overflow-tooltip label="数据分支" width="90"></el-table-column>
                     <el-table-column prop="show_master_library_name" show-overflow-tooltip label="源母库" width="95"></el-table-column>
                     <el-table-column prop="show_results_library_name" show-overflow-tooltip label="源成果库" width="95"></el-table-column>
+                    <el-table-column prop="show_charge_user" label="负责人" show-overflow-tooltip width="120"></el-table-column>
                     <el-table-column prop="show_user" label="创建用户" show-overflow-tooltip width="120"></el-table-column>
                     <el-table-column prop="create_end_time" label="创建时间" show-overflow-tooltip width="160"></el-table-column>
                     <el-table-column prop="memo" label="备注" show-overflow-tooltip min-width="100"></el-table-column>
@@ -346,6 +341,29 @@
                         <el-input :maxlength='128' clearable v-model="createform.dataBranch" placeholder="请填写数据分支，最多128个字符" size="medium"></el-input>
                     </el-col>
                 </el-form-item>
+                <!-- v_s 添加自动质检流程配置 -->
+                <el-form-item label="自动质检流程">
+                    <el-row style="text-align:left">
+                        <el-radio-group v-model="configureTemplate" size="mini" @change="templateChange">
+                            <el-radio label="temPlateA" border>模版A</el-radio>
+                            <el-radio label="temPlateB" border>模版B</el-radio>
+                            <el-radio label="temPlateC" border>模版C</el-radio>
+                            <el-radio label="customize" border>自定义</el-radio>
+                        </el-radio-group>
+                    </el-row>
+                    <el-col v-for="(ele,index) in forData" :key="index">
+                        <el-form-item label-width="100px" :label="ele.name">
+                            <el-row style="text-align:left">
+                                <el-radio-group v-show="Definition" v-model="ele.value">
+                                    <el-radio v-for="(val,index) in ele.forList" :key="index" :label="val.value" :disabled="val.value!==ele.value">{{val.name}}</el-radio>
+                                </el-radio-group>
+                                <el-radio-group v-show="!Definition" v-model="ele.value">
+                                    <el-radio v-for="(val,index) in ele.forList" :key="index" :label="val.value" :disabled="Definition">{{val.name}}</el-radio>
+                                </el-radio-group>
+                            </el-row>
+                        </el-form-item>
+                    </el-col>
+                </el-form-item>
                 <el-form-item label="继承子项目编号" prop="inherit_sub_project_id_list" v-if="createform.subProjectProcessType === '1'">
                     <el-col>
                         <el-input v-model="createform.inherit_sub_project_id_list" @blur="getSubProjectCount(createform.inherit_sub_project_id_list)" :change="formatSubProjectIdInput()" placeholder="请输入子项目要继承的项目ID，ID可用分号、逗号、空格分隔，仅可输入数字、分号、逗号、空格。" type="textarea" :autosize="{ minRows: 5, maxRows: 5}">
@@ -364,7 +382,13 @@
                 <el-form-item label="机器类型" prop="machineType">
                     <el-select style="float: left" v-model="createform.machineType" placeholder="请选择机器类型" size="medium">
                         <el-option value="1" label="CPU"></el-option>
-                        <el-option value="2" label="GPU"></el-option>
+                        <el-option value="2" label="GPU" v-if="createform.subProjectProcessType == '1'"></el-option>
+                    </el-select>
+                </el-form-item>
+                <el-form-item label="环境版本" prop="flowVersion">
+                    <el-select style="float: left; width: 350px" class="overv" :title="createform.showFlowVersion" v-model="createform.flowVersion" placeholder="请选环境版本" size="medium" @change="flowVersionChange">
+                        <el-option v-for="item in this.flowVersions" :key="item.algorithm_series_id" :label="'版本：'+ item.algorithm_series_id+' '+'，环境版本详情：'+item.algorithm_series_description" :value="item.algorithm_series_id">
+                        </el-option>
                     </el-select>
                 </el-form-item>
                 <el-form-item label="算法参数">
@@ -381,24 +405,13 @@
                         </el-col>
                     </el-col>
                 </el-form-item>
-                <!-- <el-form-item label="质检类型配置">
-                    <el-row style="text-align:left">
-                        <el-radio-group v-model="radio2" size="mini" @change="programme">
-                            <el-radio :label="3" border>方案1</el-radio>
-                            <el-radio :label="6" border>方案2</el-radio>
-                            <el-radio :label="9" border>方案3</el-radio>
-                        </el-radio-group>
-                    </el-row>
-                    <el-col v-for="(ele,index) in forData" :key="index">
-                        <el-form-item label-width="100px" :label="ele.name">
-                            <el-row style="text-align:left">
-                                <el-radio-group v-model="ele.value">
-                                    <el-radio v-for="(val,index) in ele.forList" :key="index" :label="val.value" :disabled="val.value !== ele.value">{{val.name}}</el-radio>
-                                </el-radio-group>
-                            </el-row>
-                        </el-form-item>
+                <el-form-item label="负责人" prop="charge_user">
+                    <el-col :span="7">
+                        <el-select style="float: left" filterable v-model="createform.charge_user" size="medium">
+                            <el-option v-for="item in chargeUserData" :label="item.user_name" :value="item.user_id" :key="item.user_id"></el-option>
+                        </el-select>
                     </el-col>
-                </el-form-item> -->
+                </el-form-item>
                 <el-form-item label="备注" prop="remarks">
                     <el-input type="textarea" :maxlength='255' placeholder="最多输入255个字符" :autosize="{ minRows: 2, maxRows: 4}" v-model="createform.remarks"></el-input>
                 </el-form-item>
@@ -445,9 +458,12 @@
                         </el-col>
                     </el-col>
                 </el-form-item>
-                <el-form-item label="所属主项目" prop="project_name">
-                    <el-col :span="16">
-                        <el-input :disabled="true" v-model="inSubProject.project_name" size="medium"></el-input>
+                <el-form-item label="所属主项目" prop="project_id">
+                    <el-col :span="7">
+                        <el-col :span="24">
+                            <selectMainProject :projectId="inSubProject.project_id" @selectChange="inSubProject.project_id = $event" :defaultValue="inSubProject.project_id" placeholderValue="请选择所属主项目">
+                            </selectMainProject>
+                        </el-col>
                     </el-col>
                 </el-form-item>
                 <el-form-item label="规范版本" prop="data_standard_version" v-if="inSubProject.sub_project_process_type !== '5'">
@@ -475,12 +491,41 @@
                         </el-select>
                     </el-col>
                 </el-form-item>
+                <!-- 自动质检流程编辑 -->
+                <el-form-item label="自动质检流程">
+                    <el-row style="text-align:left">
+                        <el-radio-group v-model="editModeConfigureTemplate" size="mini" @change="templateChange">
+                            <el-radio label="temPlateA" border>模版A</el-radio>
+                            <el-radio label="temPlateB" border>模版B</el-radio>
+                            <el-radio label="temPlateC" border>模版C</el-radio>
+                            <el-radio label="customize" border>自定义</el-radio>
+                        </el-radio-group>
+                    </el-row>
+                    <el-col v-for="(ele,index) in forData" :key="index">
+                        <el-form-item label-width="100px" :label="ele.name">
+                            <el-row style="text-align:left">
+                                <el-radio-group v-show="Definition" v-model="ele.value">
+                                    <el-radio v-for="(val,index) in ele.forList" :key="index" :label="val.value" :disabled="val.value!==ele.value">{{val.name}}</el-radio>
+                                </el-radio-group>
+                                <el-radio-group v-show="!Definition" v-model="ele.value">
+                                    <el-radio v-for="(val,index) in ele.forList" :key="index" :label="val.value" :disabled="Definition">{{val.name}}</el-radio>
+                                </el-radio-group>
+                            </el-row>
+                        </el-form-item>
+                    </el-col>
+                </el-form-item>
+                <el-form-item label="负责人" prop="charge_user_id">
+                    <el-col :span="7">
+                        <el-select style="float: left" filterable v-model="inSubProject.charge_user_id" size="medium">
+                            <el-option v-for="item in chargeUserData" :label="item.user_name" :value="item.user_id" :key="item.user_id"></el-option>
+                        </el-select>
+                    </el-col>
+                </el-form-item>
                 <el-form-item label="备注">
                     <el-input type="textarea" :maxlength='255' placeholder="最多输入255个字符" :autosize="{ minRows: 2, maxRows: 4}" v-model="inSubProject.memo"></el-input>
                 </el-form-item>
                 <el-form-item label-width="80px">
                     <el-button type="primary" @click="submitEditForm('inSubProject')">确定</el-button>
-                    <!--<el-button @click="resetForm('inSubProject')">重置</el-button>-->
                     <el-button @click="dialogEditVisible = false">取消</el-button>
                 </el-form-item>
             </el-form>
@@ -637,16 +682,6 @@
             </p>
             <div class="table-div">
                 <el-table :data="collectTableData" ref="collectData" border style="width: 100%">
-                    <!-- <el-table-column type="expand">
-                    <template  slot-scope="props">
-                        <el-form label-position="left" inline class="table-expand">
-                            <el-form-item>
-                                <span style="font-weight:600">关联外业任务：</span>
-                                <div style="line-height:20px;vertical-align:baseline;display:inline-block">{{props.row.wy_task_list}}</div>
-                            </el-form-item>
-                        </el-form>
-                    </template>
-          </el-table-column>-->
                     <el-table-column prop="link_id" show-overflow-tooltip label="link编号" width="170"></el-table-column>
                     <el-table-column prop="dist" show-overflow-tooltip label="城市" width="100"></el-table-column>
                     <el-table-column prop="length" show-overflow-tooltip label="长度（m）" width="100"></el-table-column>
@@ -690,6 +725,58 @@
                 </el-form-item>
             </el-form>
         </el-dialog>
+        <!-- 项目状态管理 end -->
+        <el-dialog title="批量编辑" width="800px" :visible.sync="batchEditVisible" :close-on-click-modal="false">
+            <el-form label-width="120px" :model="batchEditData" :rules="batchEditRules" ref="batchEdit">
+                <el-form-item label="子项目列表：">
+                    <el-input type="textarea" readonly placeholder="选中的子项目" v-model="batchEditListShow" :autosize="{ minRows: 5, maxRows: 5}"></el-input>
+                </el-form-item>
+                <p class="tipInfo-1">提示：已选择
+                    <b>{{batchEditList.length}}</b> 个子项目
+                </p>
+                <el-form-item label="所属主项目">
+                    <a v-if="!batchEditOptions.project_id" class="a-edit-style" v-on:click="batchEditSetting('project_id')">保持不变</a>
+                    <div v-else>
+                        <el-form-item prop="mainProjectID">
+                            <selectMainProject style="width:300px;float:left" :defaultValue='batchEditData.mainProjectID' @selectChange="batchEditData.mainProjectID = $event" placeholderValue="请选择所属主项目">
+                            </selectMainProject>
+                            <i class="el-icon-delete a-edit-style" v-on:click="batchEditCancelSetting('project_id')"></i>
+                        </el-form-item>
+                    </div>
+                </el-form-item>
+                <!-- 自动质检流程编辑 -->
+                <el-form-item label="自动质检流程">
+                    <a v-if="!batchEditOptions.mqc_conf" class="a-edit-style" v-on:click="batchEditSetting('mqc_conf')">保持不变</a>
+                    <div v-else>
+                        <el-row style="float:left;text-align:left">
+                            <el-radio-group v-model="editModeConfigureTemplate" size="mini" @change="templateChange">
+                                <el-radio label="temPlateA" border>模版A</el-radio>
+                                <el-radio label="temPlateB" border>模版B</el-radio>
+                                <el-radio label="temPlateC" border>模版C</el-radio>
+                                <el-radio label="customize" border>自定义</el-radio>
+                            </el-radio-group>
+                        </el-row>
+                        <i class="el-icon-delete a-edit-style" v-on:click="batchEditCancelSetting('mqc_conf')"></i>
+                        <el-col v-for="(ele,index) in forData" :key="index">
+                            <el-form-item label-width="100px" :label="ele.name">
+                                <el-row style="text-align:left">
+                                    <el-radio-group v-show="Definition" v-model="ele.value">
+                                        <el-radio v-for="(val,index) in ele.forList" :key="index" :label="val.value" :disabled="val.value!==ele.value">{{val.name}}</el-radio>
+                                    </el-radio-group>
+                                    <el-radio-group v-show="!Definition" v-model="ele.value">
+                                        <el-radio v-for="(val,index) in ele.forList" :key="index" :label="val.value" :disabled="Definition">{{val.name}}</el-radio>
+                                    </el-radio-group>
+                                </el-row>
+                            </el-form-item>
+                        </el-col>
+                    </div>
+                </el-form-item>
+                <el-form-item label-width="10px">
+                    <el-button type="primary" @click="submitBatchEdit()">确定</el-button>
+                    <el-button @click="batchEditVisible = false">取消</el-button>
+                </el-form-item>
+            </el-form>
+        </el-dialog>
     </div>
 </template>
 
@@ -703,7 +790,8 @@ import {
     inputCheck,
     showDataSet,
     messageInfo,
-    showDescription
+    showDescription,
+    downloadFile
 } from "@/utils/daqian_tools";
 let cityData = require("@/common/citydata.json");
 import Vue from "vue";
@@ -743,30 +831,38 @@ export default {
             }
         };
         return {
-            // inspectTypeConfigure: {}, // 质检类型配置
-            // radio2: 3,
-            // forData: [{
-            //         name: '基础要素作业',
-            //         value: 3,
-            //         forList: [{ name:'全流程质检', value: 3 }, { name:'全流程差分质检', value: 6 }, { name:'返修差分质检', value: 9 }]
-            //     },{
-            //         name: '基础要素接边',
-            //         value: 3,
-            //         forList: [{ name:'全流程质检', value: 3 }, { name:'全流程差分质检', value: 6 }, { name:'返修差分质检', value: 9 }]
-            //     },{
-            //         name: '高阶要素作业',
-            //         value: 3,
-            //         forList: [{ name:'全流程质检', value: 3 }, { name:'全流程差分质检', value: 6 }, { name:'返修差分质检', value: 9 }]
-            //     },{
-            //         name: '高阶要素接边',
-            //         value: 6,
-            //         forList: [{ name:'全流程质检', value: 3 }, { name:'全流程差分质检', value: 6 }, { name:'返修差分质检', value: 9 }]
-            //     },{
-            //         name: '回库接边',
-            //         value: 9,
-            //         forList: [{ name:'全流程质检', value: 3 }, { name:'全流程差分质检', value: 6 }, { name:'返修差分质检', value: 9 }]
-            //     }
-            // ],
+            autoCheckProcessConfigure: [], // wang: 自动质检流程配置
+            Definition: true, // wang: 自动质检流程是否可自定义配置
+            configureTemplate: 'temPlateC', // wang: 自动质检流程配置模版的初始值
+            editModeConfigureTemplate: 'temPlateC', // wang: 自动质检流程配置模版的初始值
+            forData: [{
+                name: '基础要素作业',
+                key: 30,
+                value: 1,
+                // wang：按梁静要求调整顺序
+                forList: [{ name: '返修自动差分质检', value: 3 }, { name: '全流程自动差分质检', value: 2 }, { name: '全流程自动质检', value: 1 }]
+            }, {
+                name: '基础要素接边',
+                key: 32,
+                value: 1,
+                forList: [{ name: '返修自动差分质检', value: 3 }, { name: '全流程自动差分质检', value: 2 }, { name: '全流程自动质检', value: 1 }]
+            }, {
+                name: '高阶要素作业',
+                key: 34,
+                value: 1,
+                forList: [{ name: '返修自动差分质检', value: 3 }, { name: '全流程自动差分质检', value: 2 }, { name: '全流程自动质检', value: 1 }]
+            }, {
+                name: '高阶要素接边',
+                key: 36,
+                value: 1,
+                forList: [{ name: '返修自动差分质检', value: 3 }, { name: '全流程自动差分质检', value: 2 }, { name: '全流程自动质检', value: 1 }]
+            }, {
+                name: '回库接边',
+                key: 38,
+                value: 1,
+                forList: [{ name: '返修自动差分质检', value: 3 }, { name: '全流程自动差分质检', value: 2 }, { name: '全流程自动质检', value: 1 }]
+            }
+            ],
             collapseFlag: false,
             accessDisabled: false,
             sourceFileList: [],
@@ -792,7 +888,8 @@ export default {
                 roadBranch: "",
                 sort_field_name: "sub_project_id desc",
                 project_status: "3",
-                in_out_library_status: ""
+                in_out_library_status: "",
+                charge_user: ""
             },
             searchDatas: {},
             projectStatusList: [],
@@ -896,7 +993,10 @@ export default {
                 algorithmParameters: "",
                 csv_data: [],
                 qcStandardVersion: "2.4",
-                qcRuleVersion: ""
+                qcRuleVersion: "",
+                flowVersion: "",
+                showFlowVersion: "",
+                charge_user: sessionStorage.userid
             },
             machineIDs: [],
             inheritSubProjectCount: 0,
@@ -999,6 +1099,16 @@ export default {
                         trigger: "change"
                     }
                 ],
+                flowVersion: [
+                    { required: true, message: "请选择环境版本", trigger: "change" }
+                ],
+                charge_user_id: [
+                    {
+                        required: true,
+                        message: "请选择负责人",
+                        trigger: "change"
+                    }
+                ],
                 remarks: []
             },
             createLibRules: {
@@ -1010,8 +1120,31 @@ export default {
                     }
                 ]
             },
-            inSubProject: [],
+            inSubProject: {
+                project_id: "",
+                charge_user: ""
+            },
+            batchEditOptions: {
+                project_id: false,
+                mqc_conf: false
+            },
+            batchEditRules: {
+                mainProjectID: [
+                    {
+                        required: true,
+                        message: "请选择所属主项目",
+                        trigger: "change"
+                    }
+                ]
+            },
             editRules: {
+                project_id: [
+                    {
+                        required: true,
+                        message: "请选择所属主项目",
+                        trigger: "blur"
+                    }
+                ],
                 sub_project_name: [
                     {
                         required: true,
@@ -1033,7 +1166,14 @@ export default {
                         message: "请选择规范版本",
                         trigger: "change"
                     }
-                ]
+                ],
+                charge_user: [
+                    {
+                        required: true,
+                        message: "请选择负责人",
+                        trigger: "change"
+                    }
+                ],
             },
             subprojectData: [],
             carPlanData: {},
@@ -1065,11 +1205,19 @@ export default {
             selectNumber: 0,
             resetMainProject: false,
             QcRuleVersionData: [],
-            userPermission: sessionStorage.user_permission
+            flowVersions: [],
+            userPermission: sessionStorage.user_permission,
+            batchEditVisible: false,
+            batchEditList: [],
+            batchEditListShow: "",
+            batchEditData: {
+                mainProjectID: ""
+            },
+            chargeUserData: []
         };
     },
     computed: {
-        tableData: function() {
+        tableData: function () {
             for (var val of this.subprojectData) {
                 val.show_sub_project_process_type = this.datasMap.subProjectProcessAllTypes[
                     val.sub_project_process_type
@@ -1084,6 +1232,7 @@ export default {
                 }
                 val.show_project_name = showDataSet(val.project_id, val.project_name);
                 val.show_user = showDataSet(val.user_id, val.user_name);
+                val.show_charge_user = showDataSet(val.charge_user_id, val.charge_user_name);
                 val.show_source_sub_project_name = showDataSet(val.source_sub_project_id, val.source_sub_project_name);
                 val.show_source_project_name = showDataSet(val.source_project_id, val.source_project_name);
                 val.show_results_sub_library_name = showDataSet(
@@ -1114,7 +1263,7 @@ export default {
             }
             return this.subprojectData;
         },
-        collectTableData: function() {
+        collectTableData: function () {
             for (var val of this.collectTaskInfo) {
                 val.show_field_plan_name = showDataSet(val.field_plan_id, val.field_plan_name);
             }
@@ -1124,9 +1273,12 @@ export default {
             );
         }
     },
+    created() {
+
+    },
     mounted() {
-        // this.searchProject();
         this.queryQcRuleVersionData();
+        this.queryChargeUser();
         this.accessDisabled = eval(sessionStorage.roteAuthotity);
     },
     updated() {
@@ -1145,27 +1297,32 @@ export default {
         }
     },
     methods: {
-        // programme: function (val) {
-        //     // 给了方案改数组和默认值
-        //     let arr3 = [3,3,3,6,9];
-        //     let arr6 = [6,6,6,6,9];
-        //     let arr9 = [9,3,9,9,9];
-        //     this.forData.map((ele,index) =>{
-        //         if(val == 3){
-        //             ele.value = arr3[index]
-        //         }
-        //         if(val == 6){
-        //             ele.value = arr6[index]
-        //         }
-        //         if(val == 9){
-        //             ele.value = arr9[index]
-        //         }
-        //     })
-        // },
-        formatSearchInput: function() {
+        templateChange: function (val, oldval) {
+            // 设置各模版默认配置值
+            let temPlateAInfo = [3, 2, 3, 2, 2];
+            let temPlateBInfo = [2, 2, 2, 2, 2];  // 全流程自动差分质检
+            let temPlateCInfo = [1, 1, 1, 1, 1];  //全流程自动质检
+            this.Definition = true;
+            this.forData.map((ele, index) => {
+                if (val == 'temPlateA') {
+                    ele.value = temPlateAInfo[index];
+                }
+                if (val == 'temPlateB') {
+                    ele.value = temPlateBInfo[index];
+                }
+                if (val == 'temPlateC') {
+                    ele.value = temPlateCInfo[index];
+                }
+                if (val == 'customize') {
+                    // wang: 默认按照切换前模板配置，支持修改
+                    this.Definition = false;
+                }
+            })
+        },
+        formatSearchInput: function () {
             this.search.subProjectId = inputCheck(this, this.search.subProjectId, 1);
         },
-        queryQcRuleVersionData: function() {
+        queryQcRuleVersionData: function () {
             let queryQcConfig = {
                 user_id: sessionStorage.userid
             };
@@ -1180,7 +1337,7 @@ export default {
                 }
             });
         },
-        flowVersionChange: function(value) {
+        flowVersionChange: function (value) {
             if (value) {
                 for (let item of this.flowVersions) {
                     if (value == item.algorithm_series_id) {
@@ -1195,7 +1352,7 @@ export default {
                 }
             }
         },
-        suggestSubprojectName: function() {
+        suggestSubprojectName: function () {
             if (this.createform.dataBranch === "") {
                 this.createform.dataBranch = pinyinUtil.getPinyin(this.createform.name, "", false);
             }
@@ -1206,7 +1363,7 @@ export default {
         rowClick(row, event, column) {
             this.$refs.collectData.toggleRowExpansion(row);
         },
-        selectDateChange: function(val) {
+        selectDateChange: function (val) {
             if (val) {
                 this.search.startTime = transformstartDate(this.search.planTime[0]);
                 this.search.endTime = transformEndDate(this.search.planTime[1]);
@@ -1215,7 +1372,11 @@ export default {
                 this.search.endTime = "";
             }
         },
-        searchProject: function(arg) {
+        searchProject: function (arg) {
+            if (this.$route.params.mainProjectId && arg.init) {
+                this.search.mainProjectID = this.$route.params.mainProjectId;
+                this.search.project_status = String(this.$route.params.status);
+            }
             var querySubProjectData = {
                 project_id: this.search.mainProjectID,
                 sub_project_name: trim(this.search.inProjectName),
@@ -1237,7 +1398,8 @@ export default {
                 project_status: this.search.project_status,
                 qc_rule_version: this.search.qc_rule_version,
                 // qc_standard_version: this.search.qc_standard_version,
-                in_out_library_status: this.search.in_out_library_status
+                in_out_library_status: this.search.in_out_library_status,
+                charge_user_id: this.search.charge_user
             };
             if (!(arg && arg.loading)) {
                 if (!(arg && arg.return_all)) {
@@ -1306,14 +1468,14 @@ export default {
                 }
             );
         },
-        onSearch: function(event) {
+        onSearch: function (event) {
             this.selectNumber = 0;
             this.selectAllFlag = false;
             this.allTableData = [];
             this.statusMangerVisible = false;
             this.searchProject(event);
         },
-        onRefresh: function(event) {
+        onRefresh: function (event) {
             this.selectNumber = 0;
             this.selectAllFlag = false;
             this.allTableData = [];
@@ -1332,13 +1494,14 @@ export default {
             this.search.roadBranch = "";
             this.search.subProjectId = "";
             this.search.project_status = "3";
+            this.search.charge_user = "";
             // this.resetselectCityData = true;
             this.$refs.subProjecttable.clearSort();
             this.search.sort_field_name = "sub_project_id desc";
             this.$refs.selectMainProject.reset();
-            this.searchProject();
+            this.searchProject(event);
         },
-        showSubprojectCarPlan: function(arg) {
+        showSubprojectCarPlan: function (arg) {
             if (arg && arg.index > -1) {
                 this.inSubProject = JSON.parse(JSON.stringify(this.tableData[arg.index]));
             }
@@ -1366,9 +1529,12 @@ export default {
                 } else {
                     alertInfo(this, "error", "查询外业任务失败，" + data.msg);
                 }
+            }, (response) => {
+                alertInfo(this, "error", "查询外业任务失败，服务器未响应");
+                return false;
             });
         },
-        sortTable: function(val) {
+        sortTable: function (val) {
             if (val.order === "descending") {
                 this.search.sort_field_name = val.prop + " desc";
             } else if (val.order === "ascending") {
@@ -1378,7 +1544,7 @@ export default {
             }
             this.onSearch();
         },
-        addCollectionTask: function(index) {
+        addCollectionTask: function (index) {
             this.addCollectionTaskFormData = JSON.parse(JSON.stringify(this.tableData[index]));
             if (
                 this.addCollectionTaskFormData.wy_collection_status == 1 ||
@@ -1408,11 +1574,40 @@ export default {
                 });
             }
         },
-        editSubproject: function(index) {
-            this.inSubProject = JSON.parse(JSON.stringify(this.tableData[index]));
+        editSubproject: function (index) {
             this.dialogEditVisible = true;
+            this.inSubProject = JSON.parse(JSON.stringify(this.tableData[index]));
+            // 设置该子项目原来选择的模版类型和自动质检流程配置
+            if (validateData(this.inSubProject.mqc_conf)) {
+                // 设置自动质检流程默认不能编辑
+                this.Definition = true;
+                let tmpConfigureTemplate = '';
+                // 各模版默认配置值
+                let temPlateAInfo = [3, 2, 3, 2, 2];
+                let temPlateBInfo = [2, 2, 2, 2, 2];  // 全流程自动差分质检
+                let temPlateCInfo = [1, 1, 1, 1, 1];  //全流程自动质检
+                if (this.inSubProject.mqc_conf.toString() == temPlateAInfo.toString()) {
+                    tmpConfigureTemplate = 'temPlateA';
+                } else if (this.inSubProject.mqc_conf.toString() == temPlateBInfo.toString()) {
+                    tmpConfigureTemplate = 'temPlateB';
+                } else if (this.inSubProject.mqc_conf.toString() == temPlateCInfo.toString()) {
+                    tmpConfigureTemplate = 'temPlateC';
+                } else {
+                    tmpConfigureTemplate = 'customize';
+                    this.Definition = false;
+                }
+                this.editModeConfigureTemplate = tmpConfigureTemplate;
+                // 设置该子项目原来配置的自动质检流程类型
+                this.forData.map((ele, index) => {
+                    ele.value = Number(this.inSubProject.mqc_conf[index]);
+                })
+            } else {
+                this.editModeConfigureTemplate = 'temPlateC';
+                this.templateChange(this.editModeConfigureTemplate);
+            }
+
         },
-        showCollectionTaskResult: function(arg) {
+        showCollectionTaskResult: function (arg) {
             if (typeof arg.index != "undefined") {
                 this.taskInfoData = JSON.parse(JSON.stringify(this.tableData[arg.index]));
             }
@@ -1453,9 +1648,12 @@ export default {
                 } else {
                     alertInfo(this, "error", data.msg);
                 }
+            }, (response) => {
+                alertInfo(this, "error", "加载补采详情失败，服务器未响应");
+                return false;
             });
         },
-        downloadCollectionTaskResult: function(index) {
+        downloadCollectionTaskResult: function (index) {
             let downloadQueryData = JSON.parse(JSON.stringify(this.tableData[index]));
             let subId = {
                 sub_project_id: downloadQueryData.sub_project_id
@@ -1472,9 +1670,12 @@ export default {
                 } else {
                     alertInfo(this, "error", data.msg);
                 }
+            }, (response) => {
+                alertInfo(this, "error", "补采资料下载失败，服务器未响应");
+                return false;
             });
         },
-        beforeUpload: function(file) {
+        beforeUpload: function (file) {
             this.fileList = [];
             this.fileList.push({
                 name: file.name
@@ -1490,7 +1691,7 @@ export default {
         handleExceed(files, fileList) {
             messageInfo(this, "warning", "当前限制只能选择 1 个文件，若要变更，请先删除已上传文件", 3000);
         },
-        beforeUploadSourceFile: function(file) {
+        beforeUploadSourceFile: function (file) {
             this.sourceFileList = [];
             if (file.size > 1024 * 1024) {
                 messageInfo(this, "error", "CSV 文件过大", 2000);
@@ -1531,7 +1732,7 @@ export default {
             };
             return false;
         },
-        parseCSV: function(str) {
+        parseCSV: function (str) {
             str = str.replace(/[，]/g, ",");
             const data = new CSV(str, {
                 header: false,
@@ -1549,10 +1750,10 @@ export default {
             }
             return result;
         },
-        removeFile: function(file, fileList) {
+        removeFile: function (file, fileList) {
             this.createform.csv_data = [];
         },
-        createSubproject: function() {
+        createSubproject: function () {
             this.dialogCreateVisible = true;
             //查询机器组编号
             var queryMachineID = {
@@ -1565,10 +1766,23 @@ export default {
                     this.machineIDs = data.data.host_group_list;
                 }
             });
+            //获取版本信息
+            this.$http
+                .post("/api/query_algorithm_series_info", queryMachineID)
+                .then(response => {
+                    response = response.body;
+                    var data = response.data;
+                    if (data.errno === 0) {
+                        this.flowVersions = data.data.info_list;
+                    }
+                });
             this.getLibraryList(2, "createform");
             this.getMasterLibraryList();
+            // wang: 自动质检流程配置初始化按默认模版配置
+            this.configureTemplate = 'temPlateC';
+            this.templateChange(this.configureTemplate);
         },
-        getMasterLibraryList: function() {
+        getMasterLibraryList: function () {
             var queryMasterLibraryData = {
                 user_id: sessionStorage.userid,
                 mark_status: 1,
@@ -1616,7 +1830,7 @@ export default {
                 }
             });
         },
-        subProjectProcessTypeChange: function(val) {
+        subProjectProcessTypeChange: function (val) {
             this.createform.dataBranch = "";
             if (this.$refs["createform"]) {
                 this.$refs["createform"].clearValidate();
@@ -1633,7 +1847,7 @@ export default {
                 this.suggestSubprojectName();
             }
         },
-        sourceLibraryChange: function(val) {
+        sourceLibraryChange: function (val) {
             // sourceType 1 母库 2 成果库
             if (val === "2" && this.createform.sourceResultlibraryDataInfo.length > 0) {
                 if (this.createform.subProjectProcessType === "2") {
@@ -1657,7 +1871,7 @@ export default {
                 }
             }
         },
-        createLibrary: function() {
+        createLibrary: function () {
             // 获取选择子项目信息
             let selectData = this.getSelectDatas();
             let nationalFlag = false;
@@ -1685,7 +1899,7 @@ export default {
             }
         },
         // 添加至成果库按钮响应函数
-        addSubLibrary: function() {
+        addSubLibrary: function () {
             // 获取选择子项目信息
             let selectData = this.getSelectDatas();
             let nationalFlag = false;
@@ -1707,7 +1921,7 @@ export default {
                 alertInfo(this, "warning", "请选择要添加至成果库的子项目");
             }
         },
-        submitaddCollectionTaskForm: function() {
+        submitaddCollectionTaskForm: function () {
             if (this.fileList.length === 0) {
                 alertInfo(this, "error", "请上传补采资料");
             } else {
@@ -1743,6 +1957,9 @@ export default {
                                         this.fileList = [];
                                         alertInfo(this, "error", "补采资料上传失败，" + data.msg);
                                     }
+                                }, (response) => {
+                                    alertInfo(this, "error", "补采资料上传失败，服务器未响应");
+                                    return false;
                                 });
                             })
                             .catch(() => {
@@ -1759,7 +1976,7 @@ export default {
                 });
             }
         },
-        statusManger: function() {
+        statusManger: function () {
             let selectData = this.getSelectDatas();
             let list = [];
             if (validateData(selectData)) {
@@ -1799,7 +2016,7 @@ export default {
                 } else if (status === "6") {
                     this.datasMap.projectStatusChange = {
                         "3": "进行中",
-                        "6": "暂停"
+                        "5": "作废"
                     };
                     this.emitStatus = "3";
                 }
@@ -1807,9 +2024,9 @@ export default {
                 alertInfo(this, "warning", "请先选择");
             }
         },
-        beforesubmitProjectStatus: function() {
+        beforesubmitProjectStatus: function () {
             if (this.emitStatus === "5") {
-                this.$confirm("修改为作废后将删除所有资料，是否继续？", "提示", {
+                this.$confirm("作废后不可变更为其他状态，是否继续？", "提示", {
                     confirmButtonText: "确定",
                     cancelButtonText: "取消",
                     type: "warning"
@@ -1820,7 +2037,7 @@ export default {
                 this.submitProjectStatus();
             }
         },
-        submitProjectStatus: function() {
+        submitProjectStatus: function () {
             let queryEditData = {
                 user_id: sessionStorage.userid,
                 sub_project_id: this.projectStatusList.join(","),
@@ -1834,16 +2051,93 @@ export default {
                 if (data.errno === 0) {
                     alertInfo(this, "success", "项目状态修改成功", () => {
                         this.statusMangerVisible = false;
-                        setTimeout(()=>{
+                        setTimeout(() => {
                             this.onSearch();
                         })
                     });
                 } else {
                     alertInfo(this, "error", "项目状态修改失败，" + data.msg);
                 }
+            }, (response) => {
+                alertInfo(this, "error", "项目状态修改失败，服务器未响应");
+                return false;
             });
         },
-        getSelectDatas: function() {
+        // 批量编辑
+        batchEdit: function () {
+            let selectData = this.getSelectDatas();
+            let list = [];
+            if (validateData(selectData)) {
+                selectData.forEach((val) => {
+                    list.push(val.sub_project_id);
+                })
+                this.batchEditList = list;
+                this.batchEditListShow = list.join(";")
+                this.batchEditData.mainProjectID = '';
+                this.batchEditOptions = {
+                    project_id: false,
+                    mqc_conf: false
+                };
+                this.editModeConfigureTemplate = 'temPlateC';
+                this.templateChange(this.editModeConfigureTemplate);
+                this.batchEditVisible = true;
+            } else {
+                alertInfo(this, "warning", "请先选择");
+            }
+        },
+        batchEditSetting: function (editField) {
+            this.batchEditOptions[editField] = true;
+        },
+        batchEditCancelSetting: function (editField) {
+            this.batchEditOptions[editField] = false;
+        },
+        submitBatchEdit: function () {
+            this.$refs["batchEdit"].validate((valid) => {
+                if (valid) {
+                    let batchEditFileds = [];
+                    for (let field in this.batchEditOptions) {
+                        if (this.batchEditOptions[field]) {
+                            batchEditFileds.push(field);
+                        }
+                    }
+                    this.autoCheckProcessConfigure = [];
+                    for (let ele of this.forData) { // wang:自动质检流程配置赋值
+                        this.autoCheckProcessConfigure.push({ "segment": ele.key, "template": ele.value });
+                    }
+                    var editData = {
+                        sub_project_id: this.batchEditList.join(","),
+                        modify_field: batchEditFileds,
+                        project_id: this.batchEditData.mainProjectID,
+                        mqc_conf: this.autoCheckProcessConfigure,
+                        edit_type: 3
+                    };
+                    this.$http.post("/api/modify_sub_project", editData).then(response => {
+                        response = response.body;
+                        var data = response.data;
+                        if (data.errno === 0) {
+                            alertInfo(this, "success", "批量编辑成功", () => {
+                                this.batchEditVisible = false;
+                                this.$refs["batchEdit"].resetFields();
+                            });
+                            // gu:编辑成功后主项目筛选条件变成修改的后的主项目
+                            if (batchEditFileds.indexOf("project_id") > -1) {
+                                this.search.mainProjectID = this.batchEditData.mainProjectID;
+                            }
+                            this.onSearch();
+                        } else {
+                            alertInfo(this, "error", "批量编辑失败，" + data.msg);
+                            return false;
+                        }
+                    }, (response) => {
+                        alertInfo(this, "error", "批量编辑失败，服务器未响应");
+                        return false;
+                    });
+                } else {
+                    return false;
+                }
+            })
+        },
+        getSelectDatas: function () {
             let selectSubProjectList = [];
             for (var val of this.multipleSubProjectSelection) {
                 for (var item of val) {
@@ -1866,7 +2160,7 @@ export default {
         // 查询获取最新成果库列表信息
         // query_sub_info 0 不查询子成果库信息 1查询子成果库信息
         // data_set_type 'addSubLibform' 添加至成果库操作时 'createform' 新建项目时
-        getLibraryList: function(query_sub_info, data_set_type) {
+        getLibraryList: function (query_sub_info, data_set_type) {
             var queryResultLibraryData = {
                 //"user_id":sessionStorage.userid,
                 results_library_id: 0,
@@ -1910,7 +2204,7 @@ export default {
             });
         },
         // 新建子项目或者添加至成果库功能中，选择车厂变化时响应函数
-        libararyDataSet: function(data_set_type, carFactory) {
+        libararyDataSet: function (data_set_type, carFactory) {
             // 设置默认车厂
             if (carFactory) {
                 this[data_set_type].carFactory = carFactory;
@@ -1943,11 +2237,11 @@ export default {
             }
         },
         // 新建子项目时，选择成果库变化的响应函数
-        selectLibraryChange: function(data_set_type) {
+        selectLibraryChange: function (data_set_type) {
             this.createform.sourceResultlibraryDataInfo = [];
             // 获取所选择车厂及成果库下的子成果库列表
             let subLibraryList = this.librarys[this.createform.carFactory][this.createform.libraryId].sub_libarary_list;
-            if(subLibraryList.length != 0){ // v_s: 不加判断新建子项目时会报错
+            if (subLibraryList.length != 0) { // v_s: 不加判断新建子项目时会报错
                 // 设置默认选择子成果库信息
                 this.createform.subLibraryId = subLibraryList[0].results_sub_library_id;
                 this.createform.subLibraryName = subLibraryList[0].results_sub_library_name;
@@ -1976,7 +2270,7 @@ export default {
             }
         },
         // 新建子项目时，选择子成果库变化的响应函数
-        subLibraryNameChange: function(val) {
+        subLibraryNameChange: function (val) {
             this.createform.sourceResultlibraryDataInfo = [];
             let subLibraryList = this.librarys[this.createform.carFactory][this.createform.libraryId].sub_libarary_list;
             for (let item of subLibraryList) {
@@ -2006,11 +2300,11 @@ export default {
                 this.createform.dataBranch = this.createform.sourceResultlibraryDataInfo[0].XF_destination_data_trunk;
             }
         },
-        formatTileIDInput: function(tmpString) {
+        formatTileIDInput: function (tmpString) {
             inputCheck(this, tmpString, 2);
         },
         // 生成成果库或添加至成果库时，成果库名称变化的响应函数
-        libraryNameChange: function(data_set_type) {
+        libraryNameChange: function (data_set_type) {
             if (data_set_type === "addSubLibform") {
                 let libraryList = this.librarys[this[data_set_type].carFactory];
                 this[data_set_type].libraryName = libraryList[this[data_set_type].libraryId].results_library_name;
@@ -2033,12 +2327,13 @@ export default {
         },
 
         // 提交新建子项目信息
-        submitCreateForm: function(formName) {
+        submitCreateForm: function (formName) {
             this.$refs[formName].validate(valid => {
                 if (valid) {
-                    // for(let ele of this.forData) { // v_s:质检类型配置赋值
-                    //     this.inspectTypeConfigure[ele.name] = ele.value;
-                    // }
+                    this.autoCheckProcessConfigure = [];
+                    for (let ele of this.forData) { // wang:自动质检流程配置赋值
+                        this.autoCheckProcessConfigure.push({ "segment": ele.key, "template": ele.value });
+                    }
                     // 常规项目
                     if (this.createform.subProjectProcessType === "1") {
                         this.postCreateProjectInfo();
@@ -2065,7 +2360,7 @@ export default {
                 }
             });
         },
-        postCreateProjectInfo: function() {
+        postCreateProjectInfo: function () {
             var queryCreateData = {
                 project_id: this.createform.mainProjectID,
                 sub_project_name: trim(this.createform.name),
@@ -2086,7 +2381,9 @@ export default {
                 csv_data: this.createform.csv_data,
                 algorithm_series_id: this.createform.flowVersion,
                 qc_rule_version: this.createform.qcRuleVersion,
-                qc_standard_version: this.createform.qcStandardVersion
+                qc_standard_version: this.createform.qcStandardVersion,
+                mqc_conf: this.autoCheckProcessConfigure,
+                charge_user: this.createform.charge_user
             };
             this.$http.post("/api/create_sub_project", queryCreateData).then(response => {
                 response = response.body;
@@ -2094,21 +2391,28 @@ export default {
                 if (data.errno === 0) {
                     alertInfo(this, "success", "子项目创建成功，子项目编号:" + data.data.sub_project_id, () => {
                         this.dialogCreateVisible = false;
-                        if (this.search.mainProjectID) {
-                            this.search.mainProjectID = this.createform.mainProjectID;
-                        }
                     });
-                    this.onSearch();
+                    if (this.search.mainProjectID) {
+                        this.search.mainProjectID = this.createform.mainProjectID;
+                    }
+                    this.onSearch(null);
                 } else {
                     alertInfo(this, "error", "子项目创建失败，" + data.msg);
                     return false;
                 }
+            }, (response) => {
+                alertInfo(this, "error", "子项目创建失败，服务器未响应");
+                return false;
             });
         },
         // 提交编辑子项目信息
-        submitEditForm: function(formName) {
+        submitEditForm: function (formName) {
             this.$refs[formName].validate(valid => {
                 if (valid) {
+                    this.autoCheckProcessConfigure = [];
+                    for (let ele of this.forData) { // wang:自动质检流程配置赋值
+                        this.autoCheckProcessConfigure.push({ "segment": ele.key, "template": ele.value });
+                    }
                     var queryEditData = {
                         user_id: sessionStorage.userid,
                         sub_project_id: this.inSubProject.sub_project_id,
@@ -2116,7 +2420,10 @@ export default {
                         priority_level: this.inSubProject.priority_level,
                         data_standard_version: this.inSubProject.data_standard_version,
                         memo: trim(this.inSubProject.memo),
-                        edit_type: 1
+                        mqc_conf: this.autoCheckProcessConfigure,
+                        project_id: this.inSubProject.project_id,
+                        edit_type: 1,
+                        charge_user_id: this.inSubProject.charge_user_id
                     };
                     this.$http.post("/api/modify_sub_project", queryEditData).then(response => {
                         response = response.body;
@@ -2125,10 +2432,17 @@ export default {
                             alertInfo(this, "success", "子项目编辑成功", () => {
                                 this.dialogEditVisible = false;
                             });
+                            // gu:编辑成功后主项目筛选条件变成修改的后的主项目
+                            if (this.search.mainProjectID) {
+                                this.search.mainProjectID = this.inSubProject.project_id;
+                            }
                             this.onSearch();
                         } else {
                             alertInfo(this, "error", "子项目编辑失败，" + data.msg);
                         }
+                    }, (response) => {
+                        alertInfo(this, "error", "子项目编辑失败，服务器未响应");
+                        return false;
                     });
                 } else {
                     return false;
@@ -2136,7 +2450,7 @@ export default {
             });
         },
         // 提交生成成果库信息
-        submitCreateLibraryForm: function(formName) {
+        submitCreateLibraryForm: function (formName) {
             this.$refs[formName].validate(valid => {
                 if (valid) {
                     var queryCreatLibraryData = {
@@ -2162,6 +2476,9 @@ export default {
                         } else {
                             alertInfo(this, "error", "成果库生成失败，" + data.msg);
                         }
+                    }, (response) => {
+                        alertInfo(this, "error", "成果库生成失败，服务器未响应");
+                        return false;
                     });
                 } else {
                     return false;
@@ -2169,7 +2486,7 @@ export default {
             });
         },
         // 提交添加至成果库信息
-        submitAddLibraryForm: function(formName) {
+        submitAddLibraryForm: function (formName) {
             this.$refs[formName].validate(valid => {
                 if (valid) {
                     var queryAddLibraryData = {
@@ -2196,6 +2513,9 @@ export default {
                         } else {
                             alertInfo(this, "error", "添加至成果库失败，" + data.msg);
                         }
+                    }, (response) => {
+                        alertInfo(this, "error", "添加至成果库失败，服务器未响应");
+                        return false;
                     });
                 } else {
                     return false;
@@ -2203,7 +2523,7 @@ export default {
             });
         },
         //推荐数据分支
-        recommendDataTrunk: function(sourceList, sourceString, baseString, destinationString, prefixString) {
+        recommendDataTrunk: function (sourceList, sourceString, baseString, destinationString, prefixString) {
             var nowDate = new Date();
             var nowDay = nowDate.getFullYear();
             if (nowDate.getMonth() + 1 < 10) {
@@ -2245,10 +2565,10 @@ export default {
             }
             return sourceList;
         },
-        triggerVadidate: function(formName) {
+        triggerVadidate: function (formName) {
             this.$refs[formName].validate();
         },
-        subProjectSelectionChange: function(val) {
+        subProjectSelectionChange: function (val) {
             this.multipleSubProjectSelection[this.pageInfo.currentPage - 1] = val;
             var pagesNumber = Math.ceil(this.pageInfo.totalNumber / this.pageInfo.perPage);
             for (var i = 0; i < pagesNumber; i++) {
@@ -2262,14 +2582,14 @@ export default {
             }
             this.getSelectDatas();
         },
-        pageSizeChange: function(val) {
+        pageSizeChange: function (val) {
             this.multipleSubProjectSelection = [];
             this.pageInfo.perPage = val;
             this.onSearch({
                 loading: true
             });
         },
-        pageCurrentChange: function(val) {
+        pageCurrentChange: function (val) {
             this.pageInfo.priorPage = this.pageInfo.currentPage;
             this.pageInfo.currentPage = val;
             if (this.allTableData.length > 0) {
@@ -2280,7 +2600,7 @@ export default {
                 loading: true
             });
         },
-        selectAll: function() {
+        selectAll: function () {
             if (this.selectAllFlag) {
                 this.searchProject({
                     return_all: 1
@@ -2291,10 +2611,10 @@ export default {
                 this.getSelectDatas();
             }
         },
-        subpageSizeChange: function(val) {
+        subpageSizeChange: function (val) {
             this.pageInfo.subPerPage = val;
         },
-        subpageCurrentChange: function(val) {
+        subpageCurrentChange: function (val) {
             this.pageInfo.subCurrentPage = val;
         },
         // updateCityStatus: function (data){
@@ -2303,7 +2623,7 @@ export default {
         // selectSearchCitys: function (data){
         //     this.search.selectCity = data;
         // },
-        createCityChange: function(val) {
+        createCityChange: function (val) {
             if (val.length == 2) {
                 this.createform.selectCity = val[1];
             } else if (val.length == 1) {
@@ -2313,21 +2633,21 @@ export default {
             }
         },
         // 继承子项目输入校验
-        formatSubProjectIdInput: function() {
+        formatSubProjectIdInput: function () {
             this.createform.inherit_sub_project_id_list = inputCheck(
                 this,
                 this.createform.inherit_sub_project_id_list,
                 7
             );
         },
-        formatPlanIdInput: function() {
+        formatPlanIdInput: function () {
             this.addCollectionTaskForm.plan_id = inputCheck(this, this.addCollectionTaskForm.plan_id, 7);
         },
-        formatLinkListIdInput: function() {
+        formatLinkListIdInput: function () {
             this.addCollectionTaskForm.link_id = inputCheck(this, this.addCollectionTaskForm.link_id, 7);
         },
 
-        getSubProjectCount: function(val) {
+        getSubProjectCount: function (val) {
             let inheritSubProject = trim(val).split(/[,; ]/);
             let num = 0;
             for (let val of inheritSubProject) {
@@ -2336,6 +2656,27 @@ export default {
                 }
             }
             this.inheritSubProjectCount = inheritSubProject.length - num;
+        },
+        queryChargeUser: function (searchType) {
+            var query_user = {
+                user_role: 5,
+                status: 1,
+                page_size: 1,
+                page_index: 10,
+                return_all: 1,
+                noIntercept: true //拦截器校验 true为不拦截该请求 
+            };
+            this.$http.post("/api/query_user_list", query_user).then(response => {
+                var data = response.body.data;
+                if (data.errno === 0) {
+                    this.chargeUserData = data.data.user_list;
+                }
+            });
+        },
+        exportFile: function (){
+            let postData = Object.assign({},this.searchDatas)
+            postData.query_or_export_data = 1;
+            downloadFile(this,postData,"/api/query_sub_project")
         }
     }
 };
@@ -2481,6 +2822,11 @@ $height: 100%;
             margin: 0px auto 0px auto;
         }
 
+        .export-button {
+            float: left;
+            margin: 10px 10px;
+        }
+
         .segmenting-line {
             height: 1px;
             width: 95%;
@@ -2553,6 +2899,15 @@ $height: 100%;
             text-align: left;
             float: left;
         }
+    }
+    .a-edit-style {
+        color: #2d8cf0 !important;
+        display: inline-block !important;
+        text-align: left;
+        float: left;
+        line-height: 40px;
+        margin-left: 10px;
+        cursor: pointer;
     }
 }
 </style>

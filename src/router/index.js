@@ -8,9 +8,11 @@ import index from '@/views/index';
 
 import daqian from '@/views/daqian/daqian';
 import projectManager from '@/views/daqian/projectManage/projectManager';
+import mainProjectList from '@/views/daqian/projectManage/mainProjectList';
 import productionMonitor from '@/views/daqian/projectManage/productionMonitor';
 import projectList from '@/views/daqian/projectManage/projectList';
 import projectProgress from '@/views/daqian/projectManage/projectProgress';
+import tileProgress from '@/views/daqian/projectManage/tileProgress';
 import materialManager from '@/views/daqian/materialManage/materialManager';
 import carPlanList from '@/views/daqian/materialManage/carPlanList';
 import tileManage from '@/views/daqian/materialManage/tileManage';
@@ -33,8 +35,10 @@ import ReturnLibrary from '@/views/daqian/resultLibrary/ReturnLibrary';
 import systemManager from '@/views/daqian/systemManage/systemManager';
 import onlineToolsLeft from '@/views/daqian/onlineTools/onlineToolsLeft';
 import listMode from '@/views/daqian/onlineTools/listMode';
+import autoDiscrimination from '@/views/daqian/onlineTools/autoDiscrimination';
 import checkRuleConfig from '@/views/daqian/systemManage/checkRuleConfig';
 import userList from '@/views/daqian/systemManage/userList';
+import taskManagement from '@/views/daqian/systemManage/taskManagement';
 
 Vue.use(Router);
 export default new Router({
@@ -72,6 +76,14 @@ export default new Router({
                     path: '/daqian/projectManage/projectProgress',
                     name: 'projectProgress',
                     component: projectProgress
+                }, {
+                    path: '/daqian/projectManage/mainProjectList',
+                    name: 'mainProjectList',
+                    component: mainProjectList
+                }, {
+                    path: '/daqian/projectManage/tileProgress',
+                    name: 'tileProgress',
+                    component: tileProgress
                 }]
             }, {
                 path: '/daqian/materialManage',
@@ -180,22 +192,26 @@ export default new Router({
                     path: '/daqian/systemManage/userList',
                     name: 'userList',
                     component: userList
+                }, {
+                    path: '/daqian/systemManage/taskManagement',
+                    name: 'taskManagement',
+                    component: taskManagement
                 }]
             }, {
                 path: '/daqian/onlineTools',
                 name: 'onlineToolsLeft',
                 component: onlineToolsLeft,
                 redirect: {
-                    name: 'listMode'
+                    name: 'autoDiscrimination'
                 },
                 children: [{
                     path: '/daqian/onlineTools/listMode',
                     name: 'listMode',
                     component: listMode
-                // }, {
-                //     path: '/daqian/systemManage/userList',
-                //     name: 'userList',
-                //     component: userList
+                }, {
+                    path: '/daqian/onlineTools/autoDiscrimination',
+                    name: 'autoDiscrimination',
+                    component: autoDiscrimination
                 }]
             }]
         }

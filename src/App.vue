@@ -82,7 +82,10 @@
     .ivu-cascader .ivu-cascader-menu-item {
         font-size: 14px !important;
     }
-
+    .el-tooltip__popper{
+        max-width: 300px;
+        overflow-wrap: break-word;
+    }
     .ivu-cascader {
         display: inline-block;
     }
@@ -149,7 +152,10 @@
         margin-left: -80px;
         font-weight: bold;
     }
-
+    /* 解决element-ui 升级到2.7.0版本的时候，表格文字不居中的问题 */
+    .el-table .cell{
+        text-align: center;
+    }
     .el-table .warning-row {
         background: oldlace;
     }
@@ -187,5 +193,22 @@
     #city_ctrl_form {
         top: 5px !important;
     }
-
+    .el-cascader-menu::-webkit-scrollbar {
+        /*滚动条整体样式*/
+        width: 6px; /*高宽分别对应横竖滚动条的尺寸*/
+        height: 10px;
+    }
+    .el-cascader-menu::-webkit-scrollbar-thumb {
+        /*滚动条里面小方块*/
+        border-radius: 10px;
+        height: 10px;
+    }
+    .el-cascader-menu::-webkit-scrollbar-track {
+        /*滚动条里面轨道*/
+        border-radius: 20px;
+    }
+    /** 修复全局loading的时候页面内容会隐藏*/
+    #body {
+        position: static !important;
+    }
 </style>

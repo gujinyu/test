@@ -128,6 +128,12 @@ export default {
                         show: true,
                         showZoomLevel: 10
                     },
+                    // 出库网格边界图层
+                    tileOutLibraryBoundary: {
+                        exist: true,
+                        show: true,
+                        showZoomLevel: 10
+                    },
                     // 网格当前任务包边界图层
                     tileCurPackageBoundary: {
                         exist: true,
@@ -181,6 +187,30 @@ export default {
                     "#98FB98"
                 ]
             },
+            tileProgressVisualMapInfo: {
+                categories: [
+                    "出库",
+                    "后预处理",
+                    "生产准入",
+                    "基础作业",
+                    "基础接边",
+                    "高阶作业",
+                    "高阶接边",
+                    "回库接边",
+                    "回库"
+                ],
+                color: [
+                    "#DAA520",
+                    "#9932CC",
+                    "#DC143C",
+                    "#EE8262",
+                    "#483D8B",
+                    "#0099ff",
+                    "#0066ff",
+                    "#0033ff",
+                    "#98FB98"
+                ]
+            },
             tileManageInfo: {
                 "1": "未锁定",
                 "2": "当前项目锁定",
@@ -206,6 +236,23 @@ export default {
                 "8": "二检中",
                 "9": "二检返工返修",
                 "10": "二检通过"
+            },
+            tileProgresssInfo: {
+                "1": "出库",
+                "24": "后预处理",
+                "20": "后预处理",
+                "2001": "后预处理",
+                "22": "后预处理",
+                "23": "后预处理",
+                "21": "后预处理",
+                "2101": "后预处理",
+                "3000": "生产准入",
+                "30": "基础作业",
+                "32": "基础接边",
+                "34": "高阶作业",
+                "36": "高阶接边",
+                "38": "回库接边",
+                "2": "回库"
             },
             highLightType: 0, // 0 高亮 1 取消高亮
             drawBoundaryParam: {
@@ -249,6 +296,16 @@ export default {
                         borderType: "solid",
                         borderWidth: 2,
                     }
+                },
+                outLibraryParamsObj: {
+                    tileBoundaryFlag: false,
+                    nameFlag: "outLibrary",
+                    indexFlag: "is_out_library_tile",
+                    itemStyle: {
+                        borderColor: "#000",
+                        borderType: "solid",
+                        borderWidth: 2,
+                    }
                 }
             }
         };
@@ -289,7 +346,8 @@ export default {
             arr = [0, 1, 2, 3];
         } else if (this.routerParams.startsWith("assignments")) {
             arr = [0, 1, 2, 3, 4, 5];
-            // this.layerOptions.baseTile11.showZoomLevel = 9;
+        } else if (this.routerParams.startsWith("tileProgress")) {
+            arr = [2, 3];
         }
         for (let index of arr) {
             this.toolsItems.push(this.toolsItemsAll[index]);
@@ -339,8 +397,7 @@ export default {
     // },
     methods: {
         mapToolsChange: function (data) {
-            // index为icon的序号  checked 为图标是否选中的布尔值
-            if (data.index === 0 || data.index === 1) {
+            if (data.text === "框选" || data.text === "取消选择") {
                 if (data.index) {
                     this.toolsItems[0].iconChecked = false;
                 } else {
@@ -568,6 +625,15 @@ export default {
                 } else {
                     this.layerOptions.baseTile11.tilePrePackageBoundary.show = false;
                 }
+                // 根据缩放级别设置出库网格边界图层是否显示
+                if (
+                    this.layerOptions.baseTile11.tileOutLibraryBoundary.exist &&
+                    zoomLevel >= this.layerOptions.baseTile11.tileOutLibraryBoundary.showZoomLevel
+                ) {
+                    this.layerOptions.baseTile11.tileOutLibraryBoundary.show = true;
+                } else {
+                    this.layerOptions.baseTile11.tileOutLibraryBoundary.show = false;
+                }
             } else {
                 this.layerOptions.baseTile11.show = false;
                 this.toolsItemsAll[0].iconDisabled = false;
@@ -578,6 +644,7 @@ export default {
                 this.layerOptions.baseTile11.tileProjectBoundary.show = false;
                 this.layerOptions.baseTile11.tileCurPackageBoundary.show = false;
                 this.layerOptions.baseTile11.tilePrePackageBoundary.show = false;
+                this.layerOptions.baseTile11.tileOutLibraryBoundary.show = false;
             }
             // 根据可视区进行各图层绘制
             this.drawAccordingToScreenArea(map);
@@ -608,14 +675,16 @@ export default {
                     let paramObj = this.drawBoundaryParam.cityParamObj;
                     drawtools.drawTileBoundary(this.chartsInstance, [], paramObj);
                 }
-                // 隐藏网格项目边界、任务包边界
-                if (this.routerParams.startsWith("assignments")) {
+                // 隐藏网格项目边界、任务包边界、出库网格边界
+                if (this.routerParams.startsWith("assignments") || this.routerParams.startsWith("tileProgress")) {
                     let projectParamsObj = this.drawBoundaryParam.projectParamsObj;
                     drawtools.drawTileBoundary(this.chartsInstance, [], projectParamsObj);
                     let predrawParamsObj = this.drawBoundaryParam.predrawParamsObj;
                     drawtools.drawTileBoundary(this.chartsInstance, [], predrawParamsObj);
                     let curdrawParamsObj = this.drawBoundaryParam.curdrawParamsObj;
                     drawtools.drawTileBoundary(this.chartsInstance, [], curdrawParamsObj);
+                    let outLibraryParamsObj = this.drawBoundaryParam.outLibraryParamsObj;
+                    drawtools.drawTileBoundary(this.chartsInstance, [], outLibraryParamsObj);
                 }
             }
         },
@@ -652,6 +721,9 @@ export default {
             } else if (this.routerParams === "assignments") {
                 visualMapInfo = this.assignmentsVisualMapInfo;
                 constructParamsArr = this.assignmentsInfo;
+            } else if (this.routerParams === "tileProgress") {
+                visualMapInfo = this.tileProgressVisualMapInfo;
+                constructParamsArr = this.tileProgresssInfo;
             }
             let tileData = [];
             // 构造数据结构
@@ -706,6 +778,22 @@ export default {
                 drawtools.drawTileBoundary(this.chartsInstance, boundaryPoints, drawParamsObj);
             } else {
                 // 隐藏网格项目边界
+                drawtools.drawTileBoundary(this.chartsInstance, [], drawParamsObj);
+            }
+        },
+        // 出库网格边界绘制、隐藏
+        drawTileOutLibraryBoundary: function (tileData) {
+            let drawParamsObj = this.drawBoundaryParam.outLibraryParamsObj;
+            drawParamsObj.tileBoundaryFlag = this.layerOptions.baseTile11.tileOutLibraryBoundary.show;
+            if (
+                this.layerOptions.baseTile11.tileOutLibraryBoundary.exist &&
+                this.layerOptions.baseTile11.tileOutLibraryBoundary.show
+            ) {
+                // 绘制出库网格边界边界
+                let boundaryPoints = drawtools.getScreenTileBoundaryPoint(tileData, 11, drawParamsObj.indexFlag);
+                drawtools.drawTileBoundary(this.chartsInstance, boundaryPoints, drawParamsObj);
+            } else {
+                // 隐藏出库网格边界边界
                 drawtools.drawTileBoundary(this.chartsInstance, [], drawParamsObj);
             }
         },

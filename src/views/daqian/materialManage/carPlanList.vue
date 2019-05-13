@@ -195,7 +195,7 @@
                     </el-button>
                     <el-dropdown-menu slot="dropdown">
                         <el-dropdown-item class="center" @click.native="returnMark()">打回</el-dropdown-item>
-                        <el-tooltip content="挂盘完成且准入通过才可归类，归类完成自动触发前预处理" placement="top-start" effect="light">
+                        <el-tooltip content="挂盘完成且准入通过才可归类，归类完成自动触发前预处理" placement="left" effect="light">
                             <el-dropdown-item class="center" @click.native="classifyToSubproject()">归类</el-dropdown-item>
                         </el-tooltip>
                         <el-dropdown-item class="center" @click.native="allowInMark()">人工通过</el-dropdown-item>

@@ -79,7 +79,7 @@ export default {
     },
     methods: {
         //根据导航栏点击位置设置跳转链接
-        handleSelect: function(key, keyPath) {
+        handleSelect: function (key, keyPath) {
             for (var index in this.paths) {
                 var tmpkey = key - 1;
                 if (tmpkey == index) {
@@ -90,14 +90,14 @@ export default {
             }
         },
         //退出登陆
-        logout: function() {
+        logout: function () {
             sessionStorage.clear();
             router.push({
                 name: "login"
             });
         },
         //初始进入或刷新之后设置载入链接
-        initial: function() {
+        initial: function () {
             if (sessionStorage.username) {
                 this.username = sessionStorage.username;
                 if (
@@ -134,13 +134,14 @@ export default {
                 } else if (
                     router.history.current.name === "systemManager" ||
                     router.history.current.name === "checkRuleConfig" ||
-                    router.history.current.name === "userList"
+                    router.history.current.name === "userList"  ||
+                    router.history.current.name === "taskManagement"
                 ) {
                     this.activeIndex = "6";
                 } else if (
                     router.history.current.name === "onlineToolsLeft" ||
-                    router.history.current.name === "listMode" 
-                    // router.history.current.name === "napMode"
+                    router.history.current.name === "listMode"  ||
+                    router.history.current.name === "autoDiscrimination"
                 ) {
                     this.activeIndex = "7";
                 } else {
@@ -159,7 +160,7 @@ export default {
                 });
             }
         },
-        backToIndex: function() {
+        backToIndex: function () {
             router.push({
                 name: "index"
             });
@@ -194,6 +195,19 @@ export default {
     font-weight: bold;
     margin: 13px 0 0 0;
 }
+.tipInfo {
+    text-align: left;
+    max-width: 100%;
+    margin: -10px 0 5px 120px;
+    word-wrap: break-word;
+    word-break: break-all;
+    overflow: hidden;
+}
+.a-download {
+    color: #2d8cf0 !important;
+    display: inline-block !important;
+    text-decoration: underline !important;
+}
 .pagination-area {
     .select-area {
         p {
@@ -207,7 +221,27 @@ export default {
         align-items: center;
     }
 }
-
+/*滚动条整体样式   谷歌浏览器起作用 */
+.el-cascader-menu::-webkit-scrollbar,
+.ivu-cascader-menu::-webkit-scrollbar {
+    
+    width: 6px; /*高宽分别对应横竖滚动条的尺寸*/
+    height: 10px;
+}
+.el-cascader-menu::-webkit-scrollbar-thumb,
+.ivu-cascader-menu::-webkit-scrollbar-thumb {
+    /*滚动条里面小方块*/
+    border-radius: 10px;
+    height: 10px;
+}
+.el-cascader-menu::-webkit-scrollbar-track,
+.ivu-cascader-menu::-webkit-scrollbar-track {
+    /*滚动条里面轨道*/
+    border-radius: 20px;
+}
+.el-cascader-menu{
+    min-width: 170px;
+}
 .open {
     display: flex;
     justify-content: flex-start;

@@ -136,7 +136,7 @@
                 <el-tab-pane label="地图模式" name="Map" :disabled="!isSelectSubproject || !this.totalNumber"></el-tab-pane>
             </el-tabs>
             <div class="download">
-                    <form action="/api/query_total_tile_op_info" enctype='application/json'>
+                <form action="/api/query_total_tile_op_info" enctype='application/json'>
                     <input type="hidden" name='user_id' v-model="search.userId">
                     <input type="hidden" name='project_id' v-model="search.selectProjectID">
                     <input type="hidden" name='sub_project_id' v-model="search.selectSubprojectID">
@@ -159,11 +159,11 @@
                     <input type="hidden" name="admittance_reason[]" v-if="search.selectAllowInPassResult[2]" v-model="search.selectAllowInFailResult[2]">
                     <el-button class="left-button" size="medium" type="primary" plain native-type="submit">导出</el-button>
                 </form>
-                </div>
+            </div>
             <!-- 按钮区 begin-->
             <div class="button-area">
                 <div v-show="search.selectSection !== '3000'">
-                    <el-button  class="right-div" type="primary" size="medium" :disabled="qualityAccessDisabled" @click="getRandomSelectInfos()">抽检</el-button>
+                    <el-button class="right-div" type="primary" size="medium" :disabled="qualityAccessDisabled" @click="getRandomSelectInfos()">抽检</el-button>
                     <el-button class="right-div" v-popover:popover size="medium" :disabled="qualityAccessDisabled" @click.stop="openDialogRandomSelect()">随机抽检</el-button>
                     <el-button v-show="this.search.selectSection !== '38'" class="right-div" type="primary" size="medium" :disabled="accessDisabled" @click="SectionChange()">环节人工流转</el-button>
                     <el-button class="right-div" type="primary" size="medium" :disabled="accessDisabled" @click="assignTasks()">生成任务包</el-button>
@@ -327,10 +327,10 @@
                     </el-select>
                 </el-form-item>
                 <el-form-item label="作业员" v-if="assignData.selectTaskType !== '3000'">
-                    <Cascader :data="workerOptions" size="large" v-model="selectWorkInfo" :change-on-select="ChangeOnselect" filterable class="left-div" placeholder="选择作业员" @on-visible-change="operatorVisible" @on-change="workerChange" :clearable="true"></Cascader>
+                    <el-cascader :options="workerOptions" size="medium" v-model="selectWorkInfo" :change-on-select="ChangeOnselect" filterable class="left-div" placeholder="选择作业员" @visible-change="operatorVisible" @change="workerChange" :clearable="true" :show-all-levels="false"></el-cascader>
                 </el-form-item>
                 <el-form-item label="质检员" v-if="assignData.selectTaskType == '3000'">
-                    <Cascader :data="qcOptions" size="large" v-model="selectQcInfo" :change-on-select="ChangeOnselect" filterable class="left-div" placeholder="选择质检员" @on-visible-change="operatorVisible" @on-change="workerChange" :clearable="true"></Cascader>
+                    <el-cascader :options="qcOptions" size="medium" v-model="selectQcInfo" :change-on-select="ChangeOnselect" filterable class="left-div" placeholder="选择质检员" @visible-change="operatorVisible" @change="workerChange" :show-all-levels="false" :clearable="true"></el-cascader>
                 </el-form-item>
                 <el-form-item>
                     <el-button type="primary" @click="submitAssigForm()">生成</el-button>
@@ -443,13 +443,6 @@
                         <el-input v-model="editTileData.sub_project_name" disabled size="medium"></el-input>
                     </el-col>
                 </el-form-item>
-                <!-- 编辑都是自动生成的不能编辑 -->
-                <!-- <el-form-item label="所在城市" required prop="city_name">
-                    <el-col :span="8">
-                        <Cascader :data="cityOptions" :disabled="editTileData.sub_project_process_type=='5'? false:true" v-model="selectedCitys" style="float:left" size="large" filterable placeholder="请选择城市" @on-change="cityChange" :clearable="false">
-                        </Cascader>
-                    </el-col>
-                </el-form-item> -->
                 <el-form-item label="规范版本" prop="data_standard_version">
                     <el-col :span="16">
                         <el-select style="float: left" placeholder="请选择规范版本" v-model="editTileData.data_standard_version" :disabled="editTileData.sub_project_process_type=='5'? false:true" size="medium">
@@ -512,7 +505,7 @@ export default {
                 {
                     // v_s:这个是daqian_selectCheck.vue组件下拉菜单的数据结构
                     name: "项目状态",
-                    objectType: "3", // v_s: 这个是项目状态的默认值
+                    objectType: "0", // v_s: 这个是项目状态的默认值
                     showBoxType: "el-select", // v_s:判断要渲染的标签类型
                     AllTypesSelect: {
                         "0": "全部",
@@ -1578,7 +1571,13 @@ export default {
             this.selectedCitys = [];
             this.search.userSelect = "";
             if (event !== "sectionChange") {
-                parentSonPassVal(this.forArrSelectDiv, "项目状态", "3", "son_parent"); // 复位项目状态筛选框
+                if(validateData(this.search.selectSubprojectID)){
+                    this.search.project_status = "0";
+                    parentSonPassVal(this.forArrSelectDiv, "项目状态", "0", "son_parent"); // 复位项目状态筛选框
+                } else {
+                    this.search.project_status = "3";
+                    parentSonPassVal(this.forArrSelectDiv, "项目状态", "3", "son_parent"); // 复位项目状态筛选框
+                }
                 this.search.tileID = "";
                 this.resetselectProjectData = true;
             } else {
@@ -1964,8 +1963,8 @@ export default {
                 var data = response.data;
                 if (data.errno === 0) {
                     alertInfo(this, "success", "二检抽检成功，抽检编号：" + data.data.sampling_task_id, () => {
-                        this.searchTiles();
                         this.dialogSelectQualityCheck = false;
+                        this.onSearch();
                     });
                 } else {
                     alertInfo(this, "error", "二检抽检失败，" + data.msg);
@@ -2259,6 +2258,14 @@ export default {
         SelectProjects: function(data) {
             this.search.selectProjectID = data.project_id;
             this.search.selectSubprojectID = data.sub_project_id;
+            // gu：当所属项目为主项目或全部时，项目状态为进行中；当为子项目时项目状态为全部
+             if(validateData(this.search.selectSubprojectID)){
+                this.search.project_status = "0";
+                parentSonPassVal(this.forArrSelectDiv, "项目状态", "0", "son_parent"); // 复位项目状态筛选框
+            } else {
+                this.search.project_status = "3";
+                parentSonPassVal(this.forArrSelectDiv, "项目状态", "3", "son_parent"); // 复位项目状态筛选框
+            }
             if (data.init) {
                 this.searchTiles();
             }
@@ -2347,7 +2354,7 @@ $height: 100%;
 
     .input-style {
         display: inline-block;
-        width: 400px;
+        width: 240px;
     }
 
     .tab-area {
@@ -2360,7 +2367,7 @@ $height: 100%;
     .download {
         position: absolute;
         top: 0;
-        left: 210px;
+        left: 215px;
         pointer-events: auto;
     }
     .button-area {

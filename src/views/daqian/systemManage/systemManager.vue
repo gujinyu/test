@@ -12,6 +12,10 @@
                         <i class="el-icon-daqian-jiaosequnti"></i>
                         <span slot="title">用户管理</span>
                     </el-menu-item>
+                     <el-menu-item index="3">
+                        <i class="el-icon-daqian-renwuguanli"></i>
+                        <span slot="title">任务管理</span>
+                    </el-menu-item>
                 </el-menu>
             </div>
         </div>
@@ -35,6 +39,10 @@
                     {
                         name: "userList",
                         key: "2"
+                    },
+                    {
+                    name: "taskManagement",
+                    key: "3"
                     }
                 ]
             };
@@ -61,6 +69,8 @@
                         this.activeIndex = "1";
                     } else if (router.history.current.name === "userList") {
                         this.activeIndex = "2";
+                    } else if (router.history.current.name === "taskManagement") {
+                        this.activeIndex = "3";
                     }
                 } else {
                     router.push({

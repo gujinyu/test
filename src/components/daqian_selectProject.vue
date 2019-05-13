@@ -1,8 +1,8 @@
 <template>
-    <Cascader class="widthBox" v-if="mediumSize" :data="projectOptions" v-model="projectDatas" filterable :change-on-select="ChangeOnselect" placeholder="全部" @on-change="ProjectChange" :clearable="isProjectClearable" :render-format="format" :disabled="showSelectProject">
-    </Cascader>
-    <Cascader class="widthBox" v-else :data="projectOptions" size='large' v-model="projectDatas" filterable :change-on-select="ChangeOnselect" placeholder="全部" @on-change="ProjectChange" :clearable="isProjectClearable" :render-format="format" :disabled="showSelectProject">
-    </Cascader>
+    <el-cascader v-if="size" class="widthBox" :options="projectOptions" v-model="projectDatas" filterable :change-on-select="ChangeOnselect" placeholder="全部" @change="ProjectChange" :clearable="isProjectClearable" :render-format="format" :disabled="showSelectProject" size="mini" :show-all-levels="false">
+    </el-cascader>
+    <el-cascader v-else class="widthBox" :options="projectOptions" v-model="projectDatas" filterable :change-on-select="ChangeOnselect" placeholder="全部" @change="ProjectChange" :clearable="isProjectClearable" :render-format="format" :disabled="showSelectProject" size="medium" :show-all-levels="false">
+    </el-cascader>
 </template>
 <script>
 import Vue from "vue";
@@ -16,7 +16,8 @@ export default {
         isProjectClearable: true,
         havedefaultProject: false,
         mediumSize: false,
-        isStorage: true
+        isStorage: true,
+        size: ""
     },
     data() {
         return {
@@ -32,7 +33,7 @@ export default {
         };
     },
     watch: {
-        resetselectProjectData: function(val, oldval) {
+        resetselectProjectData: function (val, oldval) {
             if (val) {
                 // 刷新触发
                 if (this.havedefaultProject) {
@@ -60,7 +61,7 @@ export default {
             }
         },
         projectOptions: {
-            handler: function(val, oldval) {
+            handler: function (val, oldval) {
                 if (this.initProject) {
                     //判读是否需要初始设置选择
                     this.projectDatas = [];
@@ -77,28 +78,33 @@ export default {
                         this.initProject = false;
                     }
                 }
-                if (this.ChangeOnselect === false) {
-                    for (var item of val) {
-                        if (!item.children.length) {
-                            Vue.set(item, "disabled", true);
-                        } else {
-                            Vue.set(item, "disabled", false);
-                        }
+                // if (this.ChangeOnselect === false) {
+                for (var item of val) {
+                    if (!item.children.length) {
+                        Vue.set(item, "disabled", true);
+                    } else {
+                        Vue.set(item, "disabled", false);
                     }
                 }
+                // }
             },
             deep: true
         }
     },
     created() {
-        // v_s: 这里的事件传递没有取消只是给变了位置现在在newValOne方法中
+        this.$emit("selectProjects", {
+            project_id: this.storageSubSelectProjectID != 0 ? 0 : parseInt(this.storageSelectProjectID),
+            sub_project_id: parseInt(this.storageSubSelectProjectID),
+            init: true
+        });
         this.getProjectList();
     },
     methods: {
-        getProjectList: function() {
+        getProjectList: function () {
             this.$http
                 .post("/api/query_project_info", {
                     user_id: sessionStorage.userid,
+                    project_status: "3,4,6", // gu:只返回状态为进行中、完结、暂停的子项目
                     query_type: 0
                 })
                 .then(response => {
@@ -122,7 +128,6 @@ export default {
                                 children: children
                             });
                         };
-                        this.newValOne(this.storageSelectProjectID,this.storageSubSelectProjectID,'req');
                         this.projectOptions = arr;
                     } else {
                         this.$message({
@@ -133,59 +138,97 @@ export default {
                     }
                 });
         },
-        newValOne:function (prentId,subId,req) { // v_s: 给默认的子项目状态赋值
-            for (let val of this.reqDataList) {
-                if(val.project_id == prentId){
-                    for(let ele of val.sub_project_list){
-                        if(ele.sub_project_id == subId){
-                            this.sub_project_process_type = ele.sub_project_process_type 
-                        }
-                    }
-                }
-            }
-            if(req) {
-                this.$emit("selectProjects", {  // v_s: 这是之前created里面的事件挪过来的
-                    project_id: parseInt(this.storageSelectProjectID),
-                    sub_project_id: parseInt(this.storageSubSelectProjectID),
-                    sub_project_process_type: this.storageSubSelectProjectID==0?'': this.sub_project_process_type,
-                    init: true
-                });
-            }
-        },
-        selectDefaultProject: function() {
+        selectDefaultProject: function () {
             // 选择上次选择的
             if (this.storageSelectProjectID) {
+                let isExised = false;
+                for(let item of this.projectOptions){
+                    if(item.value == this.storageSelectProjectID && item.children.length > 0) {
+                        isExised = true;
+                        break;
+                    }
+                }
+                // 当主项目不存在的时候并且子项目不存在
+                if (!isExised && this.storageSubSelectProjectID == 0) {
+                    this.storageSelectProjectID = 0;
+                    Vue.set(this.projectDatas, 0, parseInt(this.storageSelectProjectID));
+                    Vue.set(this.projectDatas, 1, parseInt(this.storageSubSelectProjectID));
+                    setCookie("selectProjectID", this.storageSelectProjectID, 6 * 30 * 24 * 60);
+                }
                 if (this.storageSelectProjectID > 0 && this.storageSubSelectProjectID > 0) {
+                    // 当有主项目又有子项目
                     for (var pro of this.projectOptions) {
                         if (pro.value === parseInt(this.storageSelectProjectID)) {
                             if (pro.children.length) {
                                 Vue.set(this.projectDatas, 0, parseInt(this.storageSelectProjectID));
                                 Vue.set(this.projectDatas, 1, parseInt(this.storageSubSelectProjectID));
-                                // this.$emit("selectProjects", {
-                                //     project_id: parseInt(this.storageSelectProjectID),
-                                //     sub_project_id: parseInt(this.storageSubSelectProjectID),
-                                //     init: true
-                                // });
                                 this.initProject = false;
                             }
                         }
-                    }
-                } else if (this.storageSelectProjectID > 0 && this.storageSubSelectProjectID == 0) {
-                    Vue.set(this.projectDatas, 0, parseInt(this.storageSelectProjectID));
-                    this.projectDatas.push(parseInt(this.storageSelectProjectID));
-                    //对于必须选择一个子项目的页面
-                    if (router.history.current.name === "operationPostProcess") {
-                        for (var pro of this.projectOptions) {
-                            if (pro.value === parseInt(this.storageSelectProjectID)) {
-                                if (pro.children.length) {
-                                    this.storageSubSelectProjectID = pro.children[0].value;
+                        // gu:校验子项目是否存在于返回的子项目列表中
+                        for (let val of pro.children) {
+                            if (val.value == this.storageSubSelectProjectID) {
+                                if(this.storageSelectProjectID != pro.value) {
+                                    this.storageSelectProjectID = pro.value;
+                                    setCookie("selectProjectID", this.storageSelectProjectID, 6 * 30 * 24 * 60);
                                     Vue.set(this.projectDatas, 1, parseInt(this.storageSubSelectProjectID));
-                                    // this.projectDatas.push(parseInt(this.storageSubSelectProjectID));
+                                    Vue.set(this.projectDatas, 0, parseInt(this.storageSelectProjectID));
                                     // this.$emit("selectProjects", {
                                     //     project_id: parseInt(this.storageSelectProjectID),
                                     //     sub_project_id: parseInt(this.storageSubSelectProjectID),
                                     //     init: true
                                     // });
+                                }
+                                return;
+                            }
+                        }
+                    }
+                    // gu:当存储的子项目id不在返回的列表中,强制选中当前存储主项目下的第一个子项目
+                    for (let item of this.projectOptions) {
+                        if (item.value == this.storageSelectProjectID) {
+                            if (item.children.length > 0) {
+                                this.storageSubSelectProjectID = item.children[0].value;
+                            } else if (item.children.length == 0) {
+                                // gu:当目前的主项目下没有子项目的时候就默认首个有子项目的主项目下的第一个子项目；
+                                for (let item of this.projectOptions) {
+                                    if (item.children.length > 0) {
+                                        this.storageSelectProjectID = item.value;
+                                        this.storageSubSelectProjectID = item.children[0].value;
+                                        break;
+                                    }
+                                }
+                            }
+                            Vue.set(this.projectDatas, 0, parseInt(this.storageSelectProjectID));
+                            Vue.set(this.projectDatas, 1, parseInt(this.storageSubSelectProjectID));
+                            setCookie("selectProjectID", this.storageSelectProjectID, 6 * 30 * 24 * 60);
+                            setCookie("selectSubprojectID", this.storageSubSelectProjectID, 6 * 30 * 24 * 60);
+                            this.$message({
+                                message: '子项目已不在可选范围内，已重新选择其他子项目',
+                                type: 'warning'
+                            });
+                            this.$emit("selectProjects", {
+                                project_id: 0,
+                                sub_project_id: parseInt(this.storageSubSelectProjectID),
+                                init: true
+                            });
+                            return;
+                        }
+                    }
+                } else if (this.storageSelectProjectID > 0 && this.storageSubSelectProjectID == 0) {
+                    // 当有主项目没有子项目
+                    Vue.set(this.projectDatas, 0, parseInt(this.storageSelectProjectID));
+                    //对于必须选择一个子项目的页面
+                    if (router.history.current.name === "operationPostProcess" || router.history.current.name === "tileProgress") {
+                        for (var pro of this.projectOptions) {
+                            if (pro.value === parseInt(this.storageSelectProjectID)) {
+                                if (pro.children.length) {
+                                    this.storageSubSelectProjectID = pro.children[0].value;
+                                    Vue.set(this.projectDatas, 1, parseInt(this.storageSubSelectProjectID));
+                                    this.$emit("selectProjects", {
+                                        project_id: parseInt(this.storageSelectProjectID),
+                                        sub_project_id: parseInt(this.storageSubSelectProjectID),
+                                        init: true
+                                    });
                                     this.initProject = false;
                                 }
                             }
@@ -199,20 +242,22 @@ export default {
                         this.initProject = false;
                     }
                 } else {
-                    if (router.history.current.name === "operationPostProcess") {
-                        if (this.projectOptions[0].children.length) {
-                            this.storageSelectProjectID = this.projectOptions[0].value;
-                            Vue.set(this.projectDatas, 0, parseInt(this.storageSelectProjectID));
-                            // this.projectDatas.push(parseInt(this.storageSelectProjectID));
-                            this.storageSubSelectProjectID = this.projectOptions[0].children[0].value;
-                            Vue.set(this.projectDatas, 1, parseInt(this.storageSubSelectProjectID));
-                            // this.projectDatas.push(parseInt(this.storageSubSelectProjectID));
-                            // this.$emit("selectProjects", {
-                            //     project_id: parseInt(this.storageSelectProjectID),
-                            //     sub_project_id: parseInt(this.storageSubSelectProjectID),
-                            //     init: true
-                            // });
-                            this.initProject = false;
+                    if (router.history.current.name === "operationPostProcess" || router.history.current.name === "tileProgress") {
+                         // gu:当目前的主项目下没有子项目的时候就默认首个有子项目的主项目下的第一个子项目；
+                        for(let item of this.projectOptions){
+                            if (item.children.length > 0) {
+                                this.storageSelectProjectID = item.value;
+                                this.storageSubSelectProjectID = item.children[0].value;
+                                Vue.set(this.projectDatas, 0, parseInt(this.storageSelectProjectID));
+                                Vue.set(this.projectDatas, 1, parseInt(this.storageSubSelectProjectID));
+                                this.$emit("selectProjects", {
+                                    project_id: this.storageSelectProjectID,
+                                    sub_project_id: this.storageSubSelectProjectID,
+                                    init: true
+                                });
+                                this.initProject = false;
+                                break;
+                            }
                         }
                     } else {
                         // this.$emit("selectProjects", {
@@ -221,34 +266,45 @@ export default {
                         //     init: true
                         // });
                         this.initProject = false;
-                        this.projectDatas = [];
                     }
                 }
             } else {
-                // 选择第一个
-                if (this.projectOptions[0].children.length) {
-                    this.storageSelectProjectID = this.projectOptions[0].value;
-                    Vue.set(this.projectDatas, 0, parseInt(this.storageSelectProjectID));
-                    // this.projectDatas.push(parseInt(this.storageSelectProjectID));
-                    this.storageSubSelectProjectID = this.projectOptions[0].children[0].value;
-                    Vue.set(this.projectDatas, 1, parseInt(this.storageSubSelectProjectID));
-                    // this.projectDatas.push(parseInt(this.storageSubSelectProjectID));
-                    // this.$emit("selectProjects", {
-                    //     project_id: this.projectDatas[0],
-                    //     sub_project_id: this.projectDatas[1],
-                    //     init: true
-                    // });
-                    this.initProject = false;
+                // gu:当没有主项目的时候选择第一个主项目下的第一个子项目
+                for(let item of this.projectOptions){
+                    if (item.children.length > 0) {
+                        this.storageSelectProjectID = item.value;
+                        this.storageSubSelectProjectID = item.children[0].value;
+                        Vue.set(this.projectDatas, 0, parseInt(this.storageSelectProjectID));
+                        Vue.set(this.projectDatas, 1, parseInt(this.storageSubSelectProjectID));
+                        this.$emit("selectProjects", {
+                            project_id: this.storageSelectProjectID,
+                            sub_project_id: this.storageSubSelectProjectID,
+                            init: true
+                        });
+                        this.initProject = false;
+                        break;
+                    }
                 }
+                return subprojectData;
             }
+        },
+        format(labels, selectedData) {
+            this.$emit("selectProjectNames", {
+                projectNames: labels
+            });
+            const index = labels.length - 1;
+            const data = selectedData[index] || false;
+            if (data && data.code) {
+                return labels[index];
+            }
+            return labels[index];
             if (!this.isStorage) {
                 setCookie("selectProjectID", this.storageSelectProjectID, 6 * 30 * 24 * 60);
                 setCookie("selectSubprojectID", this.storageSubSelectProjectID, 6 * 30 * 24 * 60);
             }
         },
-        ProjectChange: function(val) {
+        ProjectChange: function (val) {
             if (val.length === 2) {
-                this.newValOne(val[0],val[1])
                 this.selectProjectID = parseInt(val[0]);
                 this.selectSubprojectID = parseInt(val[1]);
             } else if (val.length === 1) {

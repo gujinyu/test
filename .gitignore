@@ -16,3 +16,4 @@ dist.zip
 *.sln
 config/index.js
 .history
+src/mock.js

@@ -1,7 +1,7 @@
 <template>
-    <Cascader :data="cityOptions" v-model="selectedCitys" size="large" placeholder="全部" filterable @on-change="searchCityChange"
-        :clearable="isClearable" :render-format="format">
-    </Cascader>
+    <el-cascader :options="cityOptions" v-model="selectedCitys" size="medium" placeholder="全部" filterable @change="searchCityChange"
+        :clearable="isClearable" :render-format="format" :show-all-levels="false"> 
+    </el-cascader>
 </template>
 
 <script>

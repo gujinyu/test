@@ -11,7 +11,6 @@
         <!-- 表格组件 -->
     </div>
 </template>
-
 <script>
 export default {
     props: ['tableData','dataList','english'],
@@ -37,7 +36,6 @@ export default {
     }
 };
 </script>
-
 <style scoped lang="scss" rel="stylesheet/scss">
 $width: 100%;
 $height: 100%;
@@ -45,5 +43,4 @@ $height: 100%;
     width: 95%;
     margin: 0 auto;
 }
-
 </style>

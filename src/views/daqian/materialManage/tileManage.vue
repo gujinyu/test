@@ -7,7 +7,7 @@
                     <!-- 筛选条件 begin-->
                     <div class="selectDiv">
                         <span class="align-right">所属项目：</span>
-                        <selectProject class="cascader-select-style" @updateProjectStatus="updateProjectStatus" @selectProjects="SelectProjects" :ChangeOnselect="projectSelectOptions.changeOnselect" :isProjectClearable="projectSelectOptions.isProjectClearable" :havedefaultProject="projectSelectOptions.havedefaultProject" :showSelectProject="projectSelectOptions.showSelectProject" :resetselectProjectData="projectSelectOptions.resetselectProjectData"></selectProject>
+                        <selectProject class="cascader-select-style" @updateProjectStatus="updateProjectStatus" @selectProjects="SelectProjects" :ChangeOnselect="projectSelectOptions.changeOnselect" :isProjectClearable="projectSelectOptions.isProjectClearable" :havedefaultProject="projectSelectOptions.havedefaultProject" :showSelectProject="projectSelectOptions.showSelectProject" :resetselectProjectData="projectSelectOptions.resetselectProjectData" size="mini"></selectProject>
                     </div>
                     <div class="selectDiv">
                         <span class="align-right">网格编号：</span>
@@ -110,20 +110,7 @@
             <div v-show="showMode === 'Map'" class="map-area" v-bind:style="{height: global.mapHeight + 'px'}">
                 <drawMap @drawMapInfo="drawMapInfo" @sendTilesInScreen="getTilesInScreen" @drawMapCall="drawMapCall" :tileList="tileList" :routerParams="routerParams" :haveLegend="haveLegend" :optionalList="optionalList" ref="drawMap"></drawMap>
             </div>
-            <!-- 地图展示区 end-->
-            <!-- 列表展示区 begin-->
             <div v-show="showMode !== 'Map'">
-                <!-- 按钮区 begin-->
-                <!-- <div class="btn-list">
-                    <span class="span-left">共找到</span>
-                    <span class="span-totalNumber">{{totalNumber}}</span>
-                    <span class="span-right">条网格信息</span>
-                    <el-button class="right-div" type="primary" size="mini" @click="inLibrary()" :disabled="accessDisabled">回库</el-button>
-                    <el-button class="right-div" type="primary" size="mini" @click="outLibrary()" :disabled="accessDisabled">出库</el-button>
-                    <el-button class="right-div" type="primary" size="mini" @click="outLibrarySuggest()" :disabled="accessDisabled">出库推荐</el-button>
-                </div> -->
-                <!-- 按钮区 end-->
-                <!-- <div class="segmenting-line"></div> -->
                 <div class="table-div">
                     <el-table size="mini" :empty-text="emptyText" v-loading="loading" element-loading-text="拼命查询中" :max-height="formHeight" element-loading-spinner="el-icon-loading" element-loading-background="rgba(80, 80, 80, 0.8)" :data="tableData" ref="tilesTables" border style="width: 100%" @select="tileSelectionChange" @select-all="tileSelectionChange" @sort-change="sortTable">
                         <!--@cell-dblclick="showEditMemo"-->
@@ -187,15 +174,6 @@
                         </el-radio-group>
                     </div>
                 </el-form-item>
-                <el-form-item label="出库网格" prop="tileIDS" :rules="[{ required: true, message: '请选择或输入要进行出库的网格ID', trigger: 'blur'},
-                        { required: true, message: '请选择或输入要进行出库的网格ID', trigger: 'change'}]">
-                    <el-input v-model="outLibraryData.tileIDS" @blur="refreshSelectTiles(outLibraryData.tileIDS)" placeholder="请选择或输入要进行出库的网格ID，多个网格ID用分号分隔，仅可输入数字和分号" :change="formatOutLibraryTileInput()" type="textarea" :autosize="{ minRows: 5, maxRows: 5}"></el-input>
-                </el-form-item>
-                <p class="tipInfo-1" v-html="tipInfoMessage"></p>
-                <el-form-item v-if="jbTileShow" label="外扩网格" prop="JbTileIDS">
-                    <el-input v-model="showJbTileList" readonly type="textarea" :autosize="{ minRows: 5, maxRows: 5}"></el-input>
-                </el-form-item>
-                <p class="tipInfo-1" v-if="jbTileShow" v-html="jbTipInfoMessage"></p>
                 <el-form-item label="出库环节" required v-if="outLibrarySegmentShow">
                     <el-select v-model="outLibraryData.outLibrarySegment" style="float: left" placeholder="请选择出库环节" size="mini">
                         <template>
@@ -204,6 +182,21 @@
                         </template>
                     </el-select>
                 </el-form-item>
+                <el-form-item label="出库网格" prop="tileIDS" :rules="[{ required: true, message: '请选择或输入要进行出库的网格ID', trigger: 'blur'},
+                        { required: true, message: '请选择或输入要进行出库的网格ID', trigger: 'change'}]">
+                    <el-input v-model="outLibraryData.tileIDS" @blur="refreshSelectTiles(outLibraryData.tileIDS)" placeholder="请选择或输入要进行出库的网格ID，多个网格ID用分号分隔，仅可输入数字和分号" :change="formatOutLibraryTileInput()" type="textarea" :autosize="{ minRows: 5, maxRows: 5}"></el-input>
+                </el-form-item>
+                <p class="tipInfo-1" v-html="tipInfoMessage"></p>
+                <el-form-item v-if="jbTileShow || this.nowLibraryType == 1&&this.nowSearchSubprojectType === '3'" label="外扩网格" prop="JbTileIDS">
+                    <div style="float:left;display:inline-block;" v-if="this.nowLibraryType == 1&&this.nowSearchSubprojectType === '3'">
+                        <el-radio-group v-model="isExtend" @change="extendEvents" size="small">
+                            <el-radio-button :label="0">无</el-radio-button>
+                            <el-radio-button :label="1">八邻域外扩</el-radio-button>
+                        </el-radio-group>
+                    </div>
+                    <el-input v-if="jbTileShow" v-model="showJbTileList" readonly type="textarea" :autosize="{ minRows: 5, maxRows: 5}"></el-input>
+                </el-form-item>
+                <p class="tipInfo-1" v-if="jbTileShow" v-html="jbTipInfoMessage"></p>
                 <el-form-item>
                     <el-button type="primary" @click="submitOutLibraryForm()">出库</el-button>
                     <el-button @click="dialogOutLibraryVisible = false">取消</el-button>
@@ -260,6 +253,7 @@ export default {
     },
     data() {
         return {
+            nowLibraryType: '',
             collapseFlag: false,
             showMode: "List",
             formHeight: this.global.formHeight,
@@ -275,7 +269,7 @@ export default {
                 sourceSubProjectName: "",
                 sort_field_name: "tile_id desc",
                 tileID: "",
-                project_status: "3" // v_s: 定义默认项目状态
+                project_status: "0" // v_s: 定义默认项目状态
             },
             searchDatas: {},
             nowSearchSubprojectID: 0,
@@ -295,6 +289,7 @@ export default {
             priorPage: 1,
             tilesTable: [],
             multipleTileSelection: [],
+            isExtend: 0,    
             outLibraryData: {
                 suggestSelect: true,
                 outLibraryType: 20,
@@ -521,6 +516,9 @@ export default {
             }
         },
         getVisibleTileInfo: function (obj) {
+            this.totalCityList = [];
+            this.filterCityList = [];
+            this.totalNumber = 0;
             let { tilesInScreen, flag } = obj;
             let queryData = {
                 sub_project_id: this.nowQueryTileData.sub_project_id,
@@ -716,7 +714,10 @@ export default {
                     }
                 }
                 this.selectNumber = data.length;
-                this.selectAllFlag = this.selectNumber == this.totalNumber;
+                this.selectAllFlag = false;
+                if (validateData(this.selectNumber)) {
+                    this.selectAllFlag = this.selectNumber == this.totalNumber;
+                }
             }
         },
         searchTiles: function (arg) {
@@ -761,6 +762,7 @@ export default {
             this.searchDatas.page_index = this.filter.currentPage;
             this.searchDatas.page_size = this.filter.perPage;
             this.nowQueryTileData = this.searchDatas;
+            // gu:修复点击出库的时候网格数目显示不正确的BUG
             if(this.isSelectSubproject){
                  this.searchDatas.return_all = 1;
             }
@@ -773,8 +775,10 @@ export default {
                         if (data.errno === 7) {
                             this.emptyText = "未查询到符合条件的数据";
                         } else {
-                            this.totalNumber = Number(data.data.total_number);
-                            this.listModeTotalNumber = this.totalNumber;
+                            if (!(arg && arg.isSelect &&  arg.isSelect === 3)) {
+                                this.totalNumber = Number(data.data.total_number);
+                                this.listModeTotalNumber = this.totalNumber;
+                            }
                             var pagesNumber = Math.ceil(this.totalNumber / this.filter.perPage);
                             this.tilesTable = Object.assign([], this.tilesTable, data.data.tile_info_list);
                             if (arg && arg.return_all) {
@@ -865,7 +869,12 @@ export default {
             this.searchTiles(event);
         },
         onRefresh: function (event) {
-            this.search.project_status = "3"; // v_s: 刷新时修改默认项目状态
+            // gu：当所属项目为主项目或全部时，项目状态为进行中；当为子项目时项目状态为全部
+            if(validateData(this.search.selectSubprojectID)){
+                this.search.project_status = "0";
+            } else {
+                this.search.project_status = "3";
+            }
             this.selectNumber = 0;
             this.selectAllFlag = false;
             this.allTableData = [];
@@ -1029,6 +1038,31 @@ export default {
             }
             this.getSelectDatas();
         },
+        extendEvents: function (val) {
+            if(this.isExtend === 1){
+                let postOutLibraryData = {
+                    sub_project_id: this.search.selectSubprojectID,
+                    master_library_id: this.nowMasterLibraryId,
+                    tile_list: this.outLibraryData.tileIDS.split(';'),
+                    query_support: 0,
+                    isExtend: 3 // v_s: 只验证外扩网格
+                };
+                this.$http.post("/api/query_tile_out_library_status", postOutLibraryData).then(res => {
+                    res = res.body;
+                    var data = res.data;
+                    if (data.errno === 0) {
+                        this.showJbTileList = data.data.jb_tile_list.join(";");
+                        this.showJbTileListNumber = data.data.jb_tile_list.length;
+                        this.jbTileShow = true;
+                    } else {
+                        this.isExtend = 0;
+                        return alertInfo(this, "error", data.msg);
+                    }
+                })
+            } else {
+                this.jbTileShow = false;
+            }
+        },
         // 出库
         outLibrary: function () {
             if (validateData(this.nowSearchSubprojectID)) {
@@ -1070,7 +1104,8 @@ export default {
                         sub_project_id: this.search.selectSubprojectID,
                         master_library_id: this.nowMasterLibraryId,
                         tile_list: selectData.postTileIDS,
-                        query_support: 0
+                        query_support: 0,
+                        isExtend: 2
                     };
                     this.$http.post("/api/query_tile_out_library_status", postOutLibraryData).then(response => {
                         response = response.body;
@@ -1104,7 +1139,7 @@ export default {
                                     //     this.outLibraryData.postTileIDS.length
                                     //     }</b> 个网格，其他网格不支持再次出库`;
                                     this.outLibraryData.subProjecType = "更新项目";
-                                    this.tipInfoMessage = `提示：该项目网格总计<b>${totalNumber}</b>个， 已选择<b>${
+                                    this.tipInfoMessage = `提示：该项目网格总计<b>${this.totalNumber}</b>个， 已选择<b>${
                                         this.outLibraryData.postTileIDS.length
                                         }</b>个网格，其他未选择网格将自动 <b>作业出库</b>`;
                                     this.jbTileShow = false;
@@ -1122,6 +1157,7 @@ export default {
                                         }</b> 个网格自动出库到 <b>回库接边</b> 环节`;
                                 }
                             } else if (this.nowSearchSubprojectType === "3") {
+                                this.isExtend = 0;
                                 // 修复项目
                                 // 设置出库类型可否选择
                                 this.outAccess.processOutAccess = true;
@@ -1154,7 +1190,7 @@ export default {
                                         }</b> 个网格支持出库，已选择 <b>${
                                         this.outLibraryData.postTileIDS.length
                                         }</b> 个网格出库，其他网格不支持再次出库`;
-                                    this.jbTileShow = true;
+                                    this.jbTileShow = false;
                                     this.jbTipInfoMessage = `提示：共 <b>${
                                         this.showJbTileListNumber
                                         }</b> 个网格自动出库到  <b>回库接边</b> 环节`;
@@ -1451,7 +1487,8 @@ export default {
                 out_library_type: this.outLibraryData.outLibraryType,
                 out_library_segment: this.outLibraryData.outLibrarySegment,
                 sub_project_id: this.nowSearchSubprojectID,
-                tile_list: this.outLibraryData.postTileIDS
+                tile_list: this.outLibraryData.postTileIDS,
+                isExtend: this.isExtend
             };
             this.$http.post("/api/trigger_tile_out_library", postOutLibraryData).then(response => {
                 response = response.body;
@@ -1546,7 +1583,12 @@ export default {
         SelectProjects: function (data) {
             this.search.selectProjectID = data.project_id;
             this.search.selectSubprojectID = data.sub_project_id;
-            this.search.sub_project_process_type = data.sub_project_process_type;
+            // gu：当所属项目为主项目或全部时，项目状态为进行中；当为子项目时项目状态为全部
+            if(validateData(this.search.selectSubprojectID)){
+                this.search.project_status = "0";
+            } else {
+                this.search.project_status = "3";
+            }
             if (data.init) {
                 this.onSearch();
             }
@@ -1579,14 +1621,12 @@ export default {
 </script>
 <style lang="scss">
 .tileManage {
-    .ivu-cascader-rel {
-        .ivu-cascader-label {
+    .el-cascader {
+        .el-cascader-label {
             line-height: 28px;
         }
-        .ivu-input-wrapper {
-            .ivu-input {
+        .el-input--medium .el-input__inner  {
                 height: 28px;
-            }
         }
     }
 }

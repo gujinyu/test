@@ -4,10 +4,10 @@
  */
 import * as Mesh from './mesh.js';
 let city = require('../common/citydata.json');
-let allTilesCityInfo = require('../common/tileCityInfo.json');
-let handleCities = ['江门', '黄山', '三沙', '万宁', '普洱', '常州', '北海', '昌都', '莆田', '三门峡', '巴彦淖尔', '舟山', '商丘',
-    '张家界', '亳州', '乌海', '安庆', '烟台', '渭南', '宝鸡', '忻州', '柳州', '东营', '宜宾', '铜仁', '定西', '六安', '抚州'
-];
+// let allTilesCityInfo = require('../common/tileCityInfo.json');
+// let handleCities = ['江门', '黄山', '三沙', '万宁', '普洱', '常州', '北海', '昌都', '莆田', '三门峡', '巴彦淖尔', '舟山', '商丘',
+//     '张家界', '亳州', '乌海', '安庆', '烟台', '渭南', '宝鸡', '忻州', '柳州', '东营', '宜宾', '铜仁', '定西', '六安', '抚州'
+// ];
 let drawingManager = null;
 // 地图初始化绘制
 export const initPaintMap = function (that, divId, showOption, layerOptions) {
@@ -23,7 +23,7 @@ export const initPaintMap = function (that, divId, showOption, layerOptions) {
             zoom: 10,
             roam: true,
             // mapStyle: {
-            //     style:'normal'
+            //         style:'normal'
             // }
             mapStyle: {
                 styleJson: [{
@@ -47,24 +47,24 @@ export const initPaintMap = function (that, divId, showOption, layerOptions) {
                 }]
                 // 关闭水域、草地、poi
                 // ,{
-                //     'featureType': 'water',
-                //     'elementType': 'all',
-                //     'stylers': {
-                //         // 'color': '#d1d1d1'
-                //         'visibility': 'off'
-                //     }
+                //         'featureType': 'water',
+                //         'elementType': 'all',
+                //         'stylers': {
+                //                 // 'color': '#d1d1d1'
+                //                 'visibility': 'off'
+                //         }
                 // }, {
-                //     'featureType': 'green',
-                //     'elementType': 'all',
-                //     'stylers': {
-                //         'visibility': 'off'
-                //     }
+                //         'featureType': 'green',
+                //         'elementType': 'all',
+                //         'stylers': {
+                //                 'visibility': 'off'
+                //         }
                 // },{
-                //     'featureType': 'poi',
-                //     'elementType': 'all',
-                //     'stylers': {
-                //         'visibility': 'off'
-                //     }
+                //         'featureType': 'poi',
+                //         'elementType': 'all',
+                //         'stylers': {
+                //                 'visibility': 'off'
+                //         }
                 // }]
             }
         },
@@ -85,11 +85,11 @@ export const initPaintMap = function (that, divId, showOption, layerOptions) {
             offset: new BMap.Size(100, 25)
         });
         // let topLeftNavigation = new BMap.NavigationControl({
-        //     // 缩放控件类型 仅包含缩放按钮
-        //     type: BMAP_NAVIGATION_CONTROL_LARGE,
-        //     anchor: BMAP_ANCHOR_BOTTOM_LEFT,
-        //     // 进一步控制缩放按钮的水平竖直偏移量
-        //     offset: new BMap.Size(5, 50)
+        //         // 缩放控件类型 仅包含缩放按钮
+        //         type: BMAP_NAVIGATION_CONTROL_LARGE,
+        //         anchor: BMAP_ANCHOR_BOTTOM_LEFT,
+        //         // 进一步控制缩放按钮的水平竖直偏移量
+        //         offset: new BMap.Size(5, 50)
         // });
         var leftBottomNavigation = new BMap.NavigationControl({
             anchor: BMAP_ANCHOR_BOTTOM_LEFT,
@@ -101,81 +101,81 @@ export const initPaintMap = function (that, divId, showOption, layerOptions) {
         map.addControl(leftBottomNavigation);
         // 添加城市控件
         // map.addControl(new BMap.CityListControl({
-        //     anchor: BMAP_ANCHOR_TOP_LEFT,
-        //     offset: new BMap.Size(20, 20)
+        //         anchor: BMAP_ANCHOR_TOP_LEFT,
+        //         offset: new BMap.Size(20, 20)
         // }));
 
         // 添加右键菜单
         // let menu = new BMap.ContextMenu();
         // let txtMenuItem = [{
-        //         text: '框选',
-        //         callback: function () {
-        //             map.zoomIn();
+        //                 text: '框选',
+        //                 callback: function () {
+        //                         map.zoomIn();
+        //                 }
+        //         },
+        //         {
+        //                 text: '取消框选',
+        //                 callback: function () {
+        //                         map.zoomOut();
+        //                 }
         //         }
-        //     },
-        //     {
-        //         text: '取消框选',
-        //         callback: function () {
-        //             map.zoomOut();
-        //         }
-        //     }
         // ];
         // for (let i = 0; i < txtMenuItem.length; i++) {
-        //     menu.addItem(new BMap.MenuItem(txtMenuItem[i].text, txtMenuItem[i].callback, 100));
+        //         menu.addItem(new BMap.MenuItem(txtMenuItem[i].text, txtMenuItem[i].callback, 100));
         // }
         // map.addContextMenu(menu);
 
         // let citysInScreenInit = [];
         // // 初始根据可视区绘制全国行政区域
         // if (map.getZoom() >= tileShowLevel) {
-        //     // 获取可视区的城市
-        //     let {
-        //         citysInScreen,
-        //         provincelist
-        //     } = getCityInView(that.chartsInstance, provinceInit);
-        //     provinceInit = provincelist;
-        //     citysInScreenInit = citysInScreen;
-        //     // 绘制可视区城市行政区域边界
-        //     drawCityBoundary(that.chartsInstance, citysInScreen, true);
+        //         // 获取可视区的城市
+        //         let {
+        //                 citysInScreen,
+        //                 provincelist
+        //         } = getCityInView(that.chartsInstance, provinceInit);
+        //         provinceInit = provincelist;
+        //         citysInScreenInit = citysInScreen;
+        //         // 绘制可视区城市行政区域边界
+        //         drawCityBoundary(that.chartsInstance, citysInScreen, true);
         // }
         // // 如果没有缓存过则缓存城市行政区域边界点
         // if (!localStorage.getItem('boundaryCacheFlag')) {
-        //     getAllCityBoundary(map, city);
+        //         getAllCityBoundary(that.chartsInstance, city);
         // }
         // setTimeout(() => {
-        //     // 获取除了可视区外的城市列表
-        //     let citysOutScreen = getOutScreenCitys(citysInScreenInit);
-        //     // 绘制除了可视区外的全国的城市行政区域
-        //     drawCityBoundary(that.chartsInstance, citysOutScreen);
+        //         // 获取除了可视区外的城市列表
+        //         let citysOutScreen = getOutScreenCitys(citysInScreenInit);
+        //         // 绘制除了可视区外的全国的城市行政区域
+        //         drawCityBoundary(that.chartsInstance, citysOutScreen);
         // }, 1000);
 
         // 点击网格事件
         that.chartsInstance.on('click', function (params) {
             if ('status' in params.data) {
-                if (!('isCurrent' in params.data) ||  params.data.isCurrent === 1) {
-                    if (params.seriesIndex === 0) {
-                        let existIndex = that.tileList.indexOf(params.name);
-                        if (existIndex === -1) {
-                            that.tileList.push(params.name);
-                            that.chartsInstance.dispatchAction({
-                                type: 'highlight',
-                                // seriesIndex: 0,
-                                seriesName: params.seriesName,
-                                dataIndex: params.dataIndex,
-                                name: params.name
-                            });
-                        } else {
-                            let index = that.tileList.indexOf(params.name);
-                            if (index > -1) {
-                                that.tileList.splice(index, 1);
+                if (!('isCurrent' in params.data) || params.data.isCurrent === 1) {
+                    if (params.seriesName === 'baseTile') {
+                        if (that.tileList) {
+                            let existIndex = that.tileList.indexOf(params.name);
+                            if (existIndex === -1) {
+                                that.tileList.push(params.name);
+                                that.chartsInstance.dispatchAction({
+                                    type: 'highlight',
+                                    seriesName: params.seriesName,
+                                    dataIndex: params.dataIndex,
+                                    name: params.name
+                                });
+                            } else {
+                                let index = that.tileList.indexOf(params.name);
+                                if (index > -1) {
+                                    that.tileList.splice(index, 1);
+                                }
+                                that.chartsInstance.dispatchAction({
+                                    type: 'downplay',
+                                    seriesName: params.seriesName,
+                                    dataIndex: params.dataIndex,
+                                    name: params.name
+                                });
                             }
-                            that.chartsInstance.dispatchAction({
-                                type: 'downplay',
-                                // seriesIndex: 0,
-                                seriesName: params.seriesName,
-                                dataIndex: params.dataIndex,
-                                name: params.name
-                            });
                         }
                     }
                 }
@@ -347,8 +347,8 @@ export const setMapChina = function (that) {
  * 绘制城市行政边界区域多边形
  *
  * @param {Object} rs 城市行政区域边界坐标点数据
- * @param {Object} map  map对象
- * @param {Object} boundaryStyle  自定义的覆盖物样式
+ * @param {Object} map    map对象
+ * @param {Object} boundaryStyle    自定义的覆盖物样式
  * @return {Object} maxPly 城市行政区域多边形覆盖物点数组
  */
 export const addCityBoundaryOverlay = function (rs, map, boundaryStyle) {
@@ -397,7 +397,9 @@ export const drawCityBoundary = function (chartsInstance, cities, clearPreOverla
             if (city && city.indexOf('市') !== -1) {
                 city = city.replace('市', '');
             }
-            tmpCityList.push({label: city});
+            tmpCityList.push({
+                label: city
+            });
         }
         cities = tmpCityList;
     }
@@ -421,23 +423,30 @@ export const drawCityBoundary = function (chartsInstance, cities, clearPreOverla
             }
         }
         for (let i = 0; i < cities.length; i++) {
-            if (handleCities.indexOf(cities[i].label) > 0 && cities[i].label.indexOf('市') === -1) {
-                cities[i].label += '市';
-            }
             let maxPly;
-            if (localStorage.getItem(cities[i].label)) {
-                let rs = JSON.parse(localStorage.getItem(cities[i].label));
-                maxPly = addCityBoundaryOverlay(rs, map, boundaryStyle);
-                if (!rs.boundaries.length) {
-                    console.log(cities[i].label + '：未找到城市边界');
-                }
-
+            let cityName = cities[i].label;
+            let tmpCityName = cities[i].label + '市';
+            let localBD = localStorage.getItem(cityName);
+            let tmpLocalBD = localStorage.getItem(tmpCityName);
+            let localRs = localBD ? JSON.parse(localBD) : (tmpLocalBD ? JSON.parse(tmpLocalBD) : null);
+            if (localRs && localRs.boundaries) {
+                maxPly = addCityBoundaryOverlay(localRs, map, boundaryStyle);
             } else {
-                bdary.get(cities[i].label, function (rs) {
-                    localStorage.setItem(cities[i].label, JSON.stringify(rs));
-                    maxPly = addCityBoundaryOverlay(rs, map, boundaryStyle);
+                bdary.get(cityName, function (rs) {
                     if (!rs.boundaries.length) {
-                        console.log(cities[i].label + '：未找到城市边界');
+                        console.log(cityName + '：未找到城市边界');
+                        bdary.get(tmpCityName, function (tmpRs) {
+                            if (!tmpRs.boundaries.length) {
+                                console.log(tmpCityName + '：未找到城市边界');
+                            } else {
+                                console.log(tmpCityName + ':找到城市边界');
+                                localStorage.setItem(tmpCityName, JSON.stringify(tmpRs));
+                                maxPly = addCityBoundaryOverlay(tmpRs, map, boundaryStyle);
+                            }
+                        });
+                    } else {
+                        localStorage.setItem(cities[i].label, JSON.stringify(rs));
+                        maxPly = addCityBoundaryOverlay(rs, map, boundaryStyle);
                     }
                 });
 
@@ -492,33 +501,15 @@ export const getCityInView = function (chartsInstance, provincelist) {
 /**
  * 获取全国城市的城市区域边界数据并缓存在localStorage
  *
- * @param {Object} map map对象
+ * @param {Object} chartsInstance 实例
  * @param {Object} city 可视区城市列表
  * @return {Object} 返回信息
  */
-export const getAllCityBoundary = function (map, city) {
+export const getAllCityBoundary = function (chartsInstance, city) {
     // 获取全国城市
     let cities = getAllCity(city);
-    if (map) {
-        // let map = chartsInstance.getModel().getComponent('bmap').getBMap();
-        map.closeInfoWindow();
-        // 创建行政区域对象实例
-        let bdary = new BMap.Boundary();
-        for (let i = 0; i < cities.length; i++) {
-            if (
-                handleCities.indexOf(cities[i].label) > 0 
-                && cities[i].label.indexOf('市') === -1
-            ) {
-                cities[i].label += '市';
-            }
-            // 是否缓存过的标记
-            localStorage.setItem('boundaryCacheFlag', true);
-            bdary.get(cities[i].label, function (rs) {
-                if (!localStorage.getItem(cities[i].label)) {
-                    localStorage.setItem(cities[i].label, JSON.stringify(rs));
-                }
-            });
-        }
+    if (chartsInstance) {
+        drawCityBoundary(chartsInstance, cities);
         return {
             init: true
         };
@@ -717,7 +708,7 @@ export const drawBaseTile = function (chartsInstance, tileData, labelShow, haveL
                     color: '#fff',
                     opacity: 1
                 },
-                seriesIndex: 0,
+                seriesName: 'baseTile',
                 hoverLink: false
             },
             bmap: {
@@ -830,7 +821,11 @@ export const getScreenTileBoundaryPoint = function (tileArr, tileLevel, boundary
  */
 export const drawTileBoundary = function (chartsInstance, data, paramsObj) {
     if (chartsInstance) {
-        let {tileBoundaryFlag, nameFlag, itemStyle} = paramsObj;
+        let {
+            tileBoundaryFlag,
+            nameFlag,
+            itemStyle
+        } = paramsObj;
         let option = chartsInstance.getOption();
         let optionArr = option.series;
         if (tileBoundaryFlag) {
@@ -981,22 +976,22 @@ export const getTileAttrInfo = function (that, tileData, tileLevel) {
  * @param {number} tileLevel 网格层级
  * @return {Object} 可视区外的所有网格
  */
-export const getTilesOutScreen = function (that, tileLevel) {
-    // 获取初始化可视区的网格
-    let tillsInScreen = getScreenAllTiles(that.chartsInstance, tileLevel);
-    let tilesOutScreen = allTilesCityInfo.tile_list;
-    for (let tile of tillsInScreen) {
-        for (let item of tilesOutScreen) {
-            if (tile.tileID === Number(item.tile_id)) {
-                tilesOutScreen.splice(
-                    tilesOutScreen.findIndex(
-                        slectVal => slectVal.tile_id === tile.tileID
-                    ),
-                    1
-                );
-                break;
-            }
-        }
-    }
-    return tilesOutScreen;
-};
+// export const getTilesOutScreen = function (that, tileLevel) {
+//         // 获取初始化可视区的网格
+//         let tillsInScreen = getScreenAllTiles(that.chartsInstance, tileLevel);
+//         let tilesOutScreen = allTilesCityInfo.tile_list;
+//         for (let tile of tillsInScreen) {
+//                 for (let item of tilesOutScreen) {
+//                         if (tile.tileID === Number(item.tile_id)) {
+//                                 tilesOutScreen.splice(
+//                                         tilesOutScreen.findIndex(
+//                                                 slectVal => slectVal.tile_id === tile.tileID
+//                                         ),
+//                                         1
+//                                 );
+//                                 break;
+//                         }
+//                 }
+//         }
+//         return tilesOutScreen;
+// };

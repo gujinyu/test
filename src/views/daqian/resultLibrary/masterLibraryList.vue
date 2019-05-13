@@ -106,7 +106,7 @@
                     <el-table-column prop="wy_start_time" sortable="custom" label="外业开始时间" show-overflow-tooltip width="150"></el-table-column>
                     <el-table-column prop="wy_update_time" sortable="custom" label="外业结束时间" show-overflow-tooltip width="150"></el-table-column>
                     <el-table-column prop="create_time" sortable="custom" label="创建时间" show-overflow-tooltip width="150"></el-table-column>
-                    <el-table-column prop="show_operation_user" label="操作用户" show-overflow-tooltip width="100"></el-table-column>
+                    <el-table-column prop="show_operation_user" label="操作用户" show-overflow-tooltip width="150"></el-table-column>
                     <el-table-column prop="operation_time" label="操作时间" sortable="custom" show-overflow-tooltip width="150"></el-table-column>
                     <el-table-column prop="memo" label="备注" show-overflow-tooltip min-width="100"></el-table-column>
                     <el-table-column fixed="right" label="操作" width="80">
@@ -217,7 +217,7 @@
 import { trim, validateData, alertInfo, showDataSet, parentSonPassVal } from "@/utils/daqian_tools";
 import router from "@/router";
 import Vue from "vue";
-import createLib from "@/components/daqian_createLibrary.vue";
+import createLib from "./daqian_createLibrary.vue";
 export default {
     components: {
         createLib

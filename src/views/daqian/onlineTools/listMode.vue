@@ -52,17 +52,14 @@
         <!-- 弹框区域end -->
     </div>
 </template>
-
 <script>
 import Vue from "vue";
 import { wgsToTileID } from "@/utils/mesh.js";
 import inputVal from "@/components/daqian_tipsInput.vue";
-import tableCompoent from "@/components/daqian_listComponent.vue";
-import batchQuery from "@/components/daqian_batchQuery.vue";
+import tableCompoent from "./daqian_listComponent.vue";
+import batchQuery from "./daqian_batchQuery.vue";
 import drawMap from "@/components/daqian_drawMap.vue";
-import  * as drawtools from "@/utils/daqian_drawtools"
-import { validateData, trim, alertInfo, inputCheck, showDataSet, resize, messageInfo} from "@/utils/daqian_tools";
-import { initPaintMap, drawCoverLine, setMapCity, drawCityBoundary, setMapChina } from "@/utils/daqian_drawtools";
+import { validateData, alertInfo } from "@/utils/daqian_tools";
 export default {
     components: {
         inputVal,
@@ -90,12 +87,14 @@ export default {
                         name: "经度",
                         value: "",
                         longitude: "",
-                        tips: "经度：-180～180范围内数值，如：116.391" // 示例为北京中心经度
+                        placeholder: "请输入...",
+                        tips: "经度：-180～180范围内数值，如：116.391", // 示例为北京中心经度
                     },
                     {
                         name: "纬度",
                         value: "",
                         dimension: "",
+                        placeholder: "请输入...",
                         tips: "纬度：-90～90范围内数值，如：39.905" // 示例为北京中心纬度
                     }
                 ],
@@ -142,18 +141,35 @@ export default {
         },
         // 导出方法实现
         exportFun: function () {
-            import('@/utils/Export2Excel').then(excel=>{ // v_s: 导出表格的方法
-                const filterVal = ['lng','lat','tatleList','tatleList13','city'];
-                const tHeader = ['经度','纬度','11级网格','13级网格','11级网格归属城市'];
-                const data = this.formatJson(filterVal, this.reset.allTableData);
-                excel.export_json_to_excel({header:tHeader, data, filename:'坐标数据'});
-            })
-        },
-        // 导出数据时的数据组装方法
-        formatJson: function(filterVal, jsonData) {
-            return jsonData.map(v=>filterVal.map(j=>{
-                return v[j]
-            }))
+            const loading = this.$loading({
+                lock: true,
+                text: '正在导出...',
+                spinner: 'el-icon-loading',
+                background: 'rgba(0, 0, 0, 0.6)'
+            });
+            const filterVal = ['lng','lat','tatleList','tatleList13','city'];
+            const tHeader = ['经度','纬度','11级网格','13级网格','11级网格归属城市'];
+            //更改导出方式，减少插件加载
+            // \uFEFF 解决中文乱码问题
+            let csvData = "\uFEFF" + tHeader.join(",") + "\n";
+            for (let val of this.reset.allTableData){
+                let arr = [];
+                for(let index of filterVal) {
+                    arr.push(val[index])
+                }
+                csvData += arr.join(",") + "\n";
+            }
+            let blob = new Blob( [csvData] , { type:'text/csv' })
+            let a = document.createElement('a');
+                a.download = "坐标数据.csv";
+                a.href = window.URL.createObjectURL(blob);
+                a.click();
+            loading.close();
+            this.$message({
+                message: '导出成功',
+                type: 'success',
+                duration: 2500
+            });
         },
         // 发送请求的方法
         SendRequest: function(data,arrList) {
@@ -251,23 +267,13 @@ export default {
                 }
             }
             this.$refs.drawMap.drawBaseTileMethod(tilesInScreen, this.tileManagerformatter);
-        },
-        // drawMapInfo: function(data) {
-        //     let initCity = '北京市';
-        //     // 设置地图默认定位至城市为子项目下第一个网格所在城市
-        //     if (this.reset.tableData.length) {
-        //         initCity = this.updateData[0].city;
-        //     }
-        //     setMapCity(data, initCity);
-        // },
+        }
     }
 };
 </script>
-
 <style scoped lang="scss" rel="stylesheet/scss">
 $width: 100%;
 $height: 100%;
-
 .userInfo {
     height: $height;
     width: $width;

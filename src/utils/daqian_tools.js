@@ -275,3 +275,44 @@ export const formatFloat5Value = function (value) {
     }
     return (parseFloat(value * 1)).toFixed(5);
 };
+// 数据导出增加提示
+export const downloadFile = function (that, value, url) {
+    if (validateData(value)) {
+        const loading = that.$loading({
+            lock: true,
+            text: '正在导出...',
+            spinner: 'el-icon-loading',
+            background: 'rgba(0, 0, 0, 0.6)'
+        });
+        that.$http({
+            url: url,
+            method: 'get',
+            params: value,
+            responseType: 'blob'
+        }).then(function (response) {
+            let blob = response.bodyBlob;
+            let fileName = decodeURIComponent(escape(response.headers.map['content-disposition'][0])).split('=')[1];
+            if (window.navigator.msSaveOrOpenBlob) {
+                navigator.msSaveBlob(blob, fileName);
+            } else {
+                let a = document.createElement('a');
+                a.download = fileName;
+                a.href = window.URL.createObjectURL(blob);
+                a.click();
+            }
+            loading.close();
+            that.$message({
+                message: '导出成功',
+                type: 'success',
+                duration: 2500
+            });
+        }).catch(res=>{
+            loading.close();
+            that.$message({
+                message: '导出失败',
+                type: 'error',
+                duration: 2500
+            });
+        });
+    }
+};

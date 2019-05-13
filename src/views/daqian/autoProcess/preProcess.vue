@@ -478,7 +478,7 @@
                     field_plan_name: "",
                     return_solution: "",
                     sort_field_name: "car_day_id desc",
-                    project_status: "3"
+                    project_status: "0"
                 },
                 filter: {
                     perPage: 10,
@@ -775,7 +775,7 @@
                         car_day_id_list: this.search.postCarPlanId.replace(/[*]/g, "%"),
                         sub_project_process_type: this.search.subProjectProcessType,
                         source_sub_project_name: this.search.sourceSubProjectName,
-                         project_status: this.search.project_status,
+                        project_status: this.search.project_status,
                         page_size: this.filter.perPage,
                         page_index: this.filter.currentPage,
                         return_all: arg && arg.return_all ? arg.return_all : 2
@@ -951,7 +951,12 @@
                 this.$refs.fullPreProcessTable.clearSort();
                 this.search.sort_field_name = "car_day_id desc";
                 if (event !== "sectionChange") {
-                    this.search.project_status = "3"; // v_s: 环节切换时不改变项目状态
+                     // gu：当所属项目为主项目或全部时，项目状态为进行中；当为子项目时项目状态为全部
+                    if(validateData(this.search.selectSubprojectID)){
+                        this.search.project_status = "0";
+                    } else {
+                        this.search.project_status = "3";
+                    }
                     this.search.carPlanId = "";
                     this.search.postCarPlanId = "";
                     this.resetselectProjectData = true;
@@ -1020,6 +1025,12 @@
             SelectProjects: function (data) {
                 this.search.selectProjectID = data.project_id;
                 this.search.selectSubprojectID = data.sub_project_id;
+                // gu：当所属项目为主项目或全部时，项目状态为进行中；当为子项目时项目状态为全部
+                if(validateData(this.search.selectSubprojectID)){
+                    this.search.project_status = "0";
+                } else {
+                    this.search.project_status = "3";
+                }
                 if (data.init) {
                     this.searchPreprocess();
                 }

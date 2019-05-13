@@ -1,23 +1,21 @@
 <template>
-    <div>
-        <!-- v_s 经度和维度 -->
-        <div>
-            <div class="selectDiv" v-for="ele in datas" :key="ele.name">
-                <span class="align-right">{{ele.name+'：'}}</span>
-                <el-input class="input-style-1" slot="reference" size="medium" v-model="ele.value" clearable :placeholder="ele.tips">
-                </el-input>
-            </div>
+    <!-- v_s 普通输入框 -->
+    <div class="selectDivBox">
+        <div v-for="ele in datas" :key="ele.name">
+            <span>{{ele.name+'：'}}</span>
+            <el-input class="input-style-1" slot="reference" size="medium" :disabled="ele.disabled" v-model="ele.value" clearable :placeholder="ele.tips">
+            </el-input>
         </div>
     </div>
 </template>
 
 <script>
 export default {
-    props: ["coordinate"],
+    props: ["rendDatas"],
     computed: {
         datas: {
             get()　{
-                return this.coordinate
+                return this.rendDatas
             }
         }
     }
@@ -27,18 +25,13 @@ export default {
 <style scoped lang="scss" rel="stylesheet/scss">
 $width: 100%;
 $height: 100%;
-.selectDiv {
+.selectDivBox {
     float: left;
-    margin: 0 0 15px 25px;
-}
-.input-style {
-    display: inline-block;
-    margin-right: 82px;
-    width: 400px;
+    margin: 0 0 15px 30px;
 }
 
 .input-style-1 {
     display: inline-block;
-    width: 300px;
+    width: 240px;
 }
 </style>

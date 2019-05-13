@@ -17,7 +17,8 @@ export default {
                     index: e,
                     checked: this.toolsItems[e].iconChecked,
                     disabled: this.toolsItems[e].iconDisabled,
-                    callback: this.toolsItems[e].iconClick
+                    callback: this.toolsItems[e].iconClick,
+                    text: this.toolsItems[e].iconText
                 })
             }
         }

@@ -12,6 +12,7 @@
     export default {
         props: {
             default: true,
+            defaultValue: 0,
             projectId: 0,
             clearable: true,
             placeholderValue: ""
@@ -61,8 +62,12 @@
                             this.allMainProjectIDs = arr;
                             if (!this.default) {
                                 if (arr.length > 0) {
-                                    this.mainProjectID = Number(arr[0].value);
-                                    this.$emit("selectChange", Number(arr[0].value));
+                                    if (this.defaultValue) {
+                                        this.mainProjectID = Number(this.defaultValue);
+                                    } else {
+                                        this.mainProjectID = Number(arr[0].value);
+                                    }
+                                    this.$emit("selectChange", this.mainProjectID);
                                 }
                             }
                             this.$emit("init",arr);

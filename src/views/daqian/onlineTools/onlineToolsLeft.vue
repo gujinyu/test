@@ -4,14 +4,14 @@
             <div class="sidebarcontent">
                 <el-menu :default-active="activeIndex" class="el-menu-vertical-demo" @select="handleSelect"
                     background-color="#545c64" text-color="#fff" active-text-color="#ffd04b">
+                    <el-menu-item index="2">
+                        <i class="el-icon-daqian-morenfenzhi"></i>
+                        <span slot="title">自定义差分</span>
+                    </el-menu-item>
                     <el-menu-item index="1">
                         <i class="el-icon-search"></i>
                         <span slot="title">经纬度查询</span>
                     </el-menu-item>
-                    <!-- <el-menu-item index="2">
-                        <i class="el-icon-daqian-jiaosequnti"></i>
-                        <span slot="title">地图模式页面</span>
-                    </el-menu-item> -->
                 </el-menu>
             </div>
         </div>
@@ -31,6 +31,9 @@
                 paths: [{
                         name: "listMode",
                         key: "1"
+                    },{
+                        name: "autoDiscrimination",
+                        key: "2"
                     }
                 ]
             };
@@ -53,9 +56,9 @@
             },
             init: function () {
                 if (sessionStorage.username) {
-                    if (router.history.current.name === "checkRuleConfig") {
+                    if (router.history.current.name === "listMode") {
                         this.activeIndex = "1";
-                    } else if (router.history.current.name === "userList") {
+                    } else if (router.history.current.name === "autoDiscrimination") {
                         this.activeIndex = "2";
                     }
                 } else {

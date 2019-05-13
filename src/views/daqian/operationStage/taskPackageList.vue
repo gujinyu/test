@@ -292,9 +292,9 @@
         <el-dialog title="分配作业员" :visible.sync="dialogOperationAssignVisible" :close-on-click-modal="false" width="40%">
             <el-form label-width="150px">
                 <el-form-item label="作业员" required>
-                    <Cascader style="float:left;width:80%" :data="workerOptions" size="large" filterable
-                        :change-on-select="ChangeOnselect" class="left-div" placeholder="选择作业员" @on-visible-change="operatorVisible"
-                        @on-change="workerChange" :clearable="true" v-model="assignData.selectWorkerArr"></Cascader>
+                    <el-cascader style="float:left;width:80%" :options="workerOptions" size="medium" filterable
+                        :change-on-select="ChangeOnselect" class="left-div" placeholder="选择作业员" @visible-change="operatorVisible"
+                        @change="workerChange" :clearable="true" :show-all-levels="false" v-model="assignData.selectWorkerArr"></el-cascader>
                 </el-form-item>
                 <el-form-item>
                     <el-button type="primary" @click="submitAssignOperatorForm()">分配</el-button>
@@ -307,9 +307,9 @@
         <el-dialog title="分配质检员" :visible.sync="dialogQualityUserAssignVisible" :close-on-click-modal="false" width="40%">
             <el-form label-width="150px" class="demo-dynamic">
                 <el-form-item label="质检员" required>
-                    <Cascader style="float:left;width:80%" :data="QualityUserOptions" filterable size="large"
-                        :change-on-select="ChangeOnselect" class="left-div" placeholder="选择质检员" @on-visible-change="QualityOperatorVisible"
-                        @on-change="QualityUserChange" :clearable="true" v-model="assignData.selectQCWorkerArr"></Cascader>
+                    <el-cascader style="float:left;width:80%" :options="QualityUserOptions" filterable size="medium"
+                        :change-on-select="ChangeOnselect" class="left-div" placeholder="选择质检员" @visible-change="QualityOperatorVisible"
+                        @change="QualityUserChange" :clearable="true" v-model="assignData.selectQCWorkerArr" :show-all-levels="false"></el-cascader>
                 </el-form-item>
                 <el-form-item>
                     <el-button type="primary" @click="submitAssignQualityUserForm()">分配</el-button>
@@ -324,19 +324,19 @@
                         :autosize="{ minRows: 5, maxRows: 5}"></el-input>
                 </el-form-item>
                 <el-form-item label="提示：">
-                    <p class="tipInfo">已选择<b>{{selectNumber}}</b>条记录</p>
+                    <p class="TipsNum">已选择<b>{{selectNumber}}</b>条记录</p>
                 </el-form-item>
                 <el-form-item label="作业员" prop="selectWorkerArr" v-if="this.batchAllocationDatas.operatorData.length!=0"
                     required>
-                    <Cascader style="float:left;width:80%" :data="workerOptions" size="large" filterable
-                        :change-on-select="ChangeOnselect" class="left-div" placeholder="选择作业员" @on-visible-change="operatorVisible"
-                        @on-change="workerChange" :clearable="true" v-model="assignData.selectWorkerArr"></Cascader>
+                    <el-cascader style="float:left;width:80%" :options="workerOptions" size="medium" filterable
+                        :change-on-select="ChangeOnselect" class="left-div" placeholder="选择作业员" @visible-change="operatorVisible"
+                        @change="workerChange" :clearable="true" v-model="assignData.selectWorkerArr" :show-all-levels="false"></el-cascader>
                 </el-form-item>
                 <el-form-item label="质检员" prop="selectQCWorkerArr" v-if="this.batchAllocationDatas.operatorData.length==0"
                     required>
-                    <Cascader style="float:left;width:80%" :data="QualityUserOptions" filterable size="large"
-                        :change-on-select="ChangeOnselect" class="left-div" placeholder="选择质检员" @on-visible-change="QualityOperatorVisible"
-                        @on-change="QualityUserChange" :clearable="true" v-model="assignData.selectQCWorkerArr"></Cascader>
+                    <el-cascader style="float:left;width:80%" :options="QualityUserOptions" filterable size="medium"
+                        :change-on-select="ChangeOnselect" class="left-div" placeholder="选择质检员" @visible-change="QualityOperatorVisible"
+                        @change="QualityUserChange" :clearable="true" v-model="assignData.selectQCWorkerArr"></el-cascader>
                 </el-form-item>
                 <el-form-item>
                     <el-button type="primary" @click="submitAssigForm()">分配</el-button>
@@ -375,7 +375,7 @@
                 onSubjectStatus: 0,
                 forArrSelectDiv: [{ // v_s:这个是daqian_selectCheck.vue组件下拉菜单的数据结构
                     name: "项目状态",
-                    objectType: "3", // v_s: 这个是项目状态的默认值
+                    objectType: "0", // v_s: 这个是项目状态的默认值
                     showBoxType: "el-select", // v_s:判断要渲染的标签类型
                     AllTypesSelect: {
                         "0": "全部",
@@ -795,7 +795,14 @@
                 this.search.sort_field_name = "orign_operation_task_id desc";
                 if (event !== "sectionChange") {
                     // v_s: 方法参数 1、要遍历的数组2、要赋值的对象名称3、要赋的值4、赋值的方向（子传父，父传子）
-                    parentSonPassVal(this.forArrSelectDiv, '项目状态', '3', 'son_parent');
+                     // gu：当所属项目为主项目或全部时，项目状态为进行中；当为子项目时项目状态为全部
+                    if(validateData(this.search.selectSubprojectID)){
+                        this.search.project_status = "0";
+                        parentSonPassVal(this.forArrSelectDiv, "项目状态", "0", "son_parent"); // 复位项目状态筛选框
+                    } else {
+                        this.search.project_status = "3";
+                        parentSonPassVal(this.forArrSelectDiv, "项目状态", "3", "son_parent"); // 复位项目状态筛选框
+                    }
                     this.search.tileID = "";
                     this.resetselectProjectData = true;
                 } else {
@@ -1145,6 +1152,14 @@
             SelectProjects: function (data) {
                 this.search.selectProjectID = data.project_id;
                 this.search.selectSubprojectID = data.sub_project_id;
+                 // gu：当所属项目为主项目或全部时，项目状态为进行中；当为子项目时项目状态为全部
+                if(validateData(this.search.selectSubprojectID)){
+                    this.search.project_status = "0";
+                    parentSonPassVal(this.forArrSelectDiv, "项目状态", "0", "son_parent"); // 复位项目状态筛选框
+                } else {
+                    this.search.project_status = "3";
+                    parentSonPassVal(this.forArrSelectDiv, "项目状态", "3", "son_parent"); // 复位项目状态筛选框
+                }
                 if (data.init) {
                     this.searchPackageTable();
                 }
@@ -1161,7 +1176,7 @@
     $width: 100%;
     $height: 100%;
 
-    .tipInfo {
+    .TipsNum {
         text-align: left;
     }
 

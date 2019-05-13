@@ -16,9 +16,8 @@
                     </div>
                     <div class="selectDiv">
                         <span class="align-right">所属组长：</span>
-                        <Cascader :data="headManOptions" v-model="headManDatas" size='large' filterable placeholder="全部"
-                            :render-format="format" @on-change="headManChange">
-                        </Cascader>
+                        <el-cascader :options="headManOptions" v-model="headManDatas" size='medium' filterable placeholder="全部" @change="headManChange" :show-all-levels="false">
+                        </el-cascader>
                     </div>
                     <div class="selectDiv">
                         <span class="align-right">入职城市：</span>

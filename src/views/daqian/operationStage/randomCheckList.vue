@@ -123,7 +123,8 @@
         inputCheck,
         showDataSet,
         parentSonPassVal, // v_s: 这个方法是遍历data数据的方法
-        reQpassVal //v_s: 循环数组给请求赋值
+        reQpassVal, //v_s: 循环数组给请求赋值
+        validateData
     } from '@/utils/daqian_tools'
     import selectCheck from "@/components/daqian_selectCheck.vue"
     export default {
@@ -136,7 +137,7 @@
                 forArrSelectDiv: [{
                     // v_s:这个是daqian_selectCheck.vue组件下拉菜单的数据结构
                     name: "项目状态",
-                    objectType: "3", // v_s: 这个是项目状态的默认值
+                    objectType: "0", // v_s: 这个是项目状态的默认值
                     showBoxType: "el-select", // v_s:判断要渲染的标签类型
                     AllTypesSelect: {
                         "0": "全部",
@@ -309,7 +310,14 @@
             onRefresh: function (event) {
                 if (event !== 'sectionChange') {
                     // v_s: 方法参数 1、要遍历的数组2、要赋值的对象名称3、要赋的值4、赋值的方向（子传父，父传子）
-                    parentSonPassVal(this.forArrSelectDiv, '项目状态', '3', 'son_parent');
+                    // gu：当所属项目为主项目或全部时，项目状态为进行中；当为子项目时项目状态为全部
+                    if(validateData(this.search.selectSubprojectID)){
+                        this.search.project_status = "0";
+                        parentSonPassVal(this.forArrSelectDiv, "项目状态", "0", "son_parent"); // 复位项目状态筛选框
+                    } else {
+                        this.search.project_status = "3";
+                        parentSonPassVal(this.forArrSelectDiv, "项目状态", "3", "son_parent"); // 复位项目状态筛选框
+                    }
                     this.search.tileID = '';
                     this.resetselectProjectData = true;
                 } else {
@@ -349,6 +357,14 @@
             SelectProjects: function (data) {
                 this.search.selectProjectID = data.project_id;
                 this.search.selectSubprojectID = data.sub_project_id;
+                 // gu：当所属项目为主项目或全部时，项目状态为进行中；当为子项目时项目状态为全部
+                if(validateData(this.search.selectSubprojectID)){
+                    this.search.project_status = "0";
+                    parentSonPassVal(this.forArrSelectDiv, "项目状态", "0", "son_parent"); // 复位项目状态筛选框
+                } else {
+                    this.search.project_status = "3";
+                    parentSonPassVal(this.forArrSelectDiv, "项目状态", "3", "son_parent"); // 复位项目状态筛选框
+                }
                 if (data.init) {
                     this.searchRandomCheckInfo();
                 }
@@ -400,7 +416,7 @@
 
         .selectDiv {
             float: left;
-            margin: 0 20px 15px 10px;
+            margin: 0 20px 5px 10px;
         }
 
         .align-right {

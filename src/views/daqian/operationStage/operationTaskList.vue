@@ -119,25 +119,28 @@
                     <input type="hidden" name="admittance_reason[]" v-if="search.selectAllowInPassResult[1]" v-model="search.selectAllowInFailResult[1]">
                     <input type="hidden" name="admittance_reason[]" v-if="search.selectAllowInPassResult[2]" v-model="search.selectAllowInFailResult[2]">
                     <el-button class="left-button" size="medium" type="primary" plain native-type="submit">导出</el-button>
-                    <!-- <el-button v-show="search.selectSection == '3000'" class="right-div" type="primary" size="medium" @click="downloadLogs()" :disabled="accessDisabled">log批量下载</el-button> -->
                 </form>
+                <el-button class="right-div" type="primary" size="medium" @click="downloadLogs()" :disabled="accessDisabled">log批量下载</el-button>
             </div>
             <!-- 按钮区 end-->
             <div class="segmenting-line"></div>
             <div class="table-div">
-                <div class="select-area-1">
+                <div class="select-area">
+                    <el-checkbox v-model="selectAllFlag" @change="selectAll()"><span class="select-number">全选</span></el-checkbox>
                     <span class="select-number">总共 <b>{{totalNumber}}</b> 条</span>
+                    <span class="select-number">已选择<b> {{selectNumber}} </b>条</span>
                 </div>
                 <el-table :empty-text="emptyText" v-loading="loading" element-loading-text="拼命查询中" :max-height="formHeight"
                     element-loading-spinner="el-icon-loading" element-loading-background="rgba(80, 80, 80, 0.8)" :data="tableData"
                     ref="operatetaskTables" border style="width: 100%" @select="operationTaskSelectionChange"
                     @select-all="operationTaskSelectionChange" @sort-change="sortTable">
-                    <!-- <el-table-column type="selection" width="55"></el-table-column> -->
+                    <el-table-column type="selection" width="55"></el-table-column>
                     <el-table-column fixed prop="operation_task_id" show-overflow-tooltip label="作业任务编号" sortable="custom"
                         width="130"></el-table-column>
                     <el-table-column fixed prop="orign_operation_task_id" show-overflow-tooltip label="所属任务包编号" width="120"></el-table-column>
                     <el-table-column prop="show_sub_project_name" show-overflow-tooltip label="所属子项目" width="120"></el-table-column>
                     <el-table-column prop="show_operation_segment" show-overflow-tooltip label="环节" width="105"></el-table-column>
+                    <el-table-column prop="show_task_type" label="作业类型" show-overflow-tooltip width="80"></el-table-column>
                     <el-table-column prop="show_status" label="作业状态" show-overflow-tooltip width="80"></el-table-column>
                     <el-table-column prop="show_project_status" label="项目状态" show-overflow-tooltip width="80"></el-table-column>
                     <el-table-column prop="show_operator" show-overflow-tooltip label="作业员" width="105"></el-table-column>
@@ -160,6 +163,8 @@
                     <el-table-column prop="show_qc_operator" label="质检员" show-overflow-tooltip width="105"></el-table-column>
                     <el-table-column prop="show_history_max_qc_round" label="历史最大质检轮数" show-overflow-tooltip width="135"></el-table-column>
                     <el-table-column prop="data_trunk_name" label="数据分支名称" show-overflow-tooltip width="130"></el-table-column>
+                    <el-table-column prop="log_data_version" label="质检log版本" show-overflow-tooltip width="135"></el-table-column>
+                    <el-table-column prop="diff_log_data_version" label="差分log版本" show-overflow-tooltip width="135"></el-table-column>
                     <!--<el-table-column prop="user_id" label="分配任务人员" width="150"></el-table-column>  -->
                     <el-table-column prop="memo" label="备注" show-overflow-tooltip min-width="100"></el-table-column>
                 </el-table>
@@ -174,6 +179,33 @@
             <!-- 表格分页 end-->
         </div>
         <!--    作业任务列表 end-->
+        <!-- Log批量下载 begin-->
+        <el-dialog title="log批量下载" :visible.sync="dialogDownloadLogVisible" :close-on-click-modal="false">
+            <el-form ref="downloadLogData" :model="downloadLogData" label-width="120px" class="demo-dynamic" v-loading="downloadLoading" element-loading-text="拼命下载中">
+                <el-form-item label="作业任务列表" required prop="taskIDS" :rules="[{ required: true, message: '请选择要下载log的作业任务', trigger: 'blur'},{ required: true, message: '请选择要下载准入log的作业任务', trigger: 'change'}]">
+                    <el-input type="textarea" readonly placeholder="请选择要下载log的作业任务" :autosize="{ minRows: 5, maxRows: 5}"
+                        v-model="downloadLogData.taskIDS"></el-input>
+                </el-form-item>
+                <p class="tipInfo">提示：已选择<b>{{downloadLogData.postTaskIDS.length}}</b>条记录（去重后）,选择任务的log将合并为一个文件下载</p>
+                <el-form-item label="文件类型" required style="margin-bottom: 10px">
+                    <div style="float:left;display:inline-block;">
+                        <el-radio v-model="downloadLogData.fileType" label="qc">质检log</el-radio>
+                        <el-radio v-model="downloadLogData.fileType" label="diff">差分log</el-radio>
+                    </div>
+                </el-form-item>
+                <el-form-item label="文件格式" required style="margin-bottom: 10px">
+                    <div style="float:left;display:inline-block;">
+                        <el-radio v-model="downloadLogData.fileFormat" label="csv">csv格式</el-radio>
+                        <el-radio v-model="downloadLogData.fileFormat" label="pb">proto格式</el-radio>
+                    </div>
+                </el-form-item>
+                <el-form-item>
+                    <el-button type="primary" @click="submitDownloadLogForm()">确定</el-button>
+                    <el-button @click="dialogDownloadLogVisible = false">取消</el-button>
+                </el-form-item>
+            </el-form>
+        </el-dialog>
+        <!-- Log批量下载 end-->
     </div>
 </template>
 
@@ -200,7 +232,7 @@
                 forArrSelectDiv: [{
                     // v_s:这个是daqian_selectCheck.vue组件下拉菜单的数据结构
                     name: "项目状态",
-                    objectType: "3", // v_s: 这个是项目状态的默认值
+                    objectType: "0", // v_s: 这个是项目状态的默认值
                     showBoxType: "el-select", // v_s:判断要渲染的标签类型
                     AllTypesSelect: {
                         "0": "全部",
@@ -236,9 +268,14 @@
                 operatetaskTable: [],
                 multipleOperationTaskSelection: [],
                 workerOptions: [],
+                nowSelectSubprojectID: 0,
+                nowSelectSection: '30',
+                downloadLoading: false,
                 downloadLogData: {
                     taskIDS: "",
-                    postTaskIDS: []
+                    postTaskIDS: [],
+                    fileFormat: 'csv',
+                    fileType: 'qc'
                 },
                 dialogDownloadLogVisible: false,
                 ChangeOnselect: true, //是否每一级都可以选择，false 只允许选择最后一级 true 每一级均可选择，值会相应变化
@@ -248,18 +285,22 @@
                 resetselectProjectData: false, //是否重置子项目信息 fasle 不重置 true 重置
                 accessDisabled: false,
                 loading: true,
-                emptyText: "查询中"
+                emptyText: "查询中",
+                selectAllFlag: false,
+                selectNumber: 0,
+                allTableData: []
             };
         },
         updated() {
-            return;
-            this.$refs.operatetaskTables.clearSelection();
+            if (this.$refs.operatetaskTables) {
+                this.$refs.operatetaskTables.clearSelection();
+            }
             var tmpSelectData = this.multipleOperationTaskSelection[this.filter.currentPage - 1];
             if (tmpSelectData) {
-                let arr = JSON.parse(JSON.stringify(this.multipleOperationTaskSelection[tmpSelectData]));
+                let arr = JSON.parse(JSON.stringify(tmpSelectData));
                 for (var sel of tmpSelectData) {
                     for (let i in this.tableData) {
-                        if (JSON.stringify(sel) === JSON.stringify(this.tableData[index])) {
+                        if (JSON.stringify(sel) === JSON.stringify(this.tableData[i])) {
                             this.$refs.operatetaskTables.toggleRowSelection(this.tableData[i]);
                         }
                     }
@@ -446,6 +487,8 @@
             searchOperation: function (arg) {
                 this.multipleOperationTaskSelection = [];
                 this.emptyText = "查询中";
+                this.nowSelectSubprojectID = this.search.selectSubprojectID;
+                this.nowSelectSection = this.search.selectSection;
                 var query_operationTaskList = {
                     project_status: reQpassVal(this.forArrSelectDiv, '项目状态'), // v_s: 项目状态
                     user_id: sessionStorage.userid,
@@ -467,16 +510,20 @@
                     admittance_reason: this.search.selectAllowInFailResult,
                     page_index: this.filter.currentPage,
                     page_size: this.filter.perPage,
-                    return_all: 2
+                    return_all: arg && arg.return_all ? arg.return_all : 2
                 };
-                if (!arg) {
-                    this.operatetaskTable = [];
+                if (!(arg && arg.loading)) {
+                    if (!(arg && arg.return_all)) {
+                        this.operatetaskTable = [];
+                        this.searchDatas = query_operationTaskList;
+                    }
                     this.totalNumber = 0;
                     this.filter.currentPage = 1;
+                    this.multipleOperationTaskSelection = [];
                     this.loading = true;
-                    this.searchDatas = query_operationTaskList;
                 }
                 this.search.project_status = this.forArrSelectDiv[0].objectType; // v_s:给导出按钮执行赋值状态数据
+                this.searchDatas.return_all = arg && arg.return_all ? arg.return_all : 2;
                 this.searchDatas.page_index = this.filter.currentPage;
                 this.searchDatas.page_size = this.filter.perPage;
                 this.$http.post("/api/query_op_task_info", this.searchDatas).then(
@@ -486,11 +533,36 @@
                         var data = response.data;
                         if (data.errno === 0 || data.errno === 7) {
                             if (data.errno === 7) {
+                                this.operatetaskTable = [];
                                 this.emptyText = "未查询到符合条件的数据";
                             } else {
-                                this.operatetaskTable = data.data.operation_task_status_info;
                                 this.totalNumber = data.data.total_number;
+                                if (arg && arg.return_all) {
+                                    var pagesNumber = Math.ceil(this.totalNumber / this.filter.perPage);
+                                    for (var i = 0; i < pagesNumber; i++) {
+                                        this.multipleOperationTaskSelection[i] = data.data.operation_task_status_info.slice(
+                                            i * this.filter.perPage,
+                                            (i + 1) * this.filter.perPage
+                                        );
+                                    }
+                                    this.allTableData = Object.assign(
+                                        [],
+                                        this.allTableData,
+                                        this.multipleOperationTaskSelection
+                                    );
+                                    if (this.allTableData.length > 0) {
+                                        this.operatetaskTable = this.allTableData[0];
+                                    }
+                                    this.$refs.operatetaskTables.clearSelection();
+                                    this.tableData.forEach(row => {
+                                        this.$refs.operatetaskTables.toggleRowSelection(row);
+                                    });
+                                    this.getSelectDatas();
+                                } else {
+                                    this.operatetaskTable = data.data.operation_task_status_info;
+                                }
                                 if (this.totalNumber == 0) {
+                                    this.operatetaskTable = [];
                                     this.emptyText = "未查询到符合条件的数据";
                                 } else {
                                     this.emptyText = "加载中";
@@ -510,17 +582,29 @@
                 );
             },
             onSearch: function (event) {
-                this.searchOperation();
+                this.selectNumber = 0;
+                this.selectAllFlag = false;
+                this.allTableData = [];
+                this.searchOperation(event);
             },
             onRefresh: function (event) {
+                this.selectNumber = 0;
+                this.selectAllFlag = false;
+                this.allTableData = [];
                 this.search.selectState = '';
                 this.search.origintaskID = '';
                 this.search.selectTaskType = '';
                 this.$refs.operatetaskTables.clearSort();
                 this.search.sort_field_name = "operation_task_id desc";
                 if (event !== "sectionChange") {
-                    // v_s: 方法参数 1、要遍历的数组2、要赋值的对象名称3、要赋的值4、赋值的方向（子传父，父传子）
-                    parentSonPassVal(this.forArrSelectDiv, '项目状态', '3', 'son_parent')
+                    // gu：当所属项目为主项目或全部时，项目状态为进行中；当为子项目时项目状态为全部
+                if(validateData(this.search.selectSubprojectID)){
+                    this.search.project_status = "0";
+                    parentSonPassVal(this.forArrSelectDiv, "项目状态", "0", "son_parent"); // 复位项目状态筛选框
+                } else {
+                    this.search.project_status = "3";
+                    parentSonPassVal(this.forArrSelectDiv, "项目状态", "3", "son_parent"); // 复位项目状态筛选框
+                }
                     this.search.tileID = "";
                     this.resetselectProjectData = true;
                 } else {
@@ -532,13 +616,18 @@
                 this.onRefresh("sectionChange");
             },
             downloadLogs: function () {
+                if (!validateData(this.nowSelectSubprojectID)) {
+                    alertInfo(this, "warning", "请先选择一个子项目并进行筛选");
+                    return;
+                }
                 let selectData = this.getSelectDatas();
                 if (validateData(selectData.taskIDS)) {
                     this.downloadLogData.postTaskIDS = [].concat(JSON.parse(JSON.stringify(selectData.postTaskIDS)));
                     this.downloadLogData.taskIDS = selectData.taskIDS;
                     this.dialogDownloadLogVisible = true;
+                    this.downloadLoading = false;
                 } else {
-                    alertInfo(this, "warning", "请选择要下载log的作业任务");
+                    alertInfo(this, "warning", "请选择要下载log的任务");
                 }
             },
             getSelectDatas: function () {
@@ -558,10 +647,45 @@
                         }
                     }
                 }
+                this.selectNumber = postTaskIDS.length;
+                this.selectAllFlag = this.selectNumber == this.totalNumber;
                 return {
                     taskIDS: taskIDS,
                     postTaskIDS: postTaskIDS
                 };
+            },
+            submitDownloadLogForm: function () {
+                this.$refs["downloadLogData"].validate(valid => {
+                    if (valid) {
+                        this.downloadLoading = true;
+                        var postDownloadLogData = {
+                            user_id: sessionStorage.userid,
+                            sub_project_id: this.nowSelectSubprojectID,
+                            process_segment: this.nowSelectSection,
+                            format: this.downloadLogData.fileFormat,
+                            type: this.downloadLogData.fileType,
+                            operation_task_list: this.downloadLogData.postTaskIDS
+                        };
+                        this.$http.post("/api/generate_log_download_url", postDownloadLogData).then(
+                            response => {
+                                response = response.body;
+                                var data = response.data;
+                                this.downloadLoading = false;
+                                if (data.errno === 0) {
+                                    alertInfo(
+                                        this,
+                                        "success",
+                                        "log下载成功，<a class='a-download' href=" + data.data.log_download_url + ">点击保存</a>",
+                                        () => {
+                                            this.dialogDownloadLogVisible = false;
+                                        }
+                                    );
+                                } else {
+                                    alertInfo(this, "error", "log下载失败，" + data.msg);
+                                }
+                            });
+                    }
+                });
             },
             sortTable: function (val) {
                 if (val.order === "descending") {
@@ -576,12 +700,20 @@
             pageSizeChange: function (val) {
                 this.multipleOperationTaskSelection = [];
                 this.filter.perPage = val;
-                this.searchOperation(true);
+                this.onSearch({
+                    loading: true
+                });
             },
             pageCurrentChange: function (val) {
                 this.priorPage = this.filter.currentPage;
                 this.filter.currentPage = val;
-                this.searchOperation(true);
+                if (this.allTableData.length > 0) {
+                    this.operatetaskTable = this.allTableData[val - 1];
+                    return;
+                }
+                this.searchOperation({
+                    loading: true
+                });
             },
             operationTaskSelectionChange: function (val) {
                 var pagesNumber = Math.ceil(this.totalNumber / this.filter.perPage);
@@ -594,10 +726,30 @@
                         }
                     }
                 }
+                this.getSelectDatas();
+            },
+            selectAll: function () {
+                if (this.selectAllFlag) {
+                    this.searchOperation({
+                        return_all: 1
+                    });
+                } else {
+                    this.multipleOperationTaskSelection = [];
+                    this.$refs.operatetaskTables.clearSelection();
+                    this.getSelectDatas();
+                }
             },
             SelectProjects: function (data) {
                 this.search.selectProjectID = data.project_id;
                 this.search.selectSubprojectID = data.sub_project_id;
+                 // gu：当所属项目为主项目或全部时，项目状态为进行中；当为子项目时项目状态为全部
+                if(validateData(this.search.selectSubprojectID)){
+                    this.search.project_status = "0";
+                    parentSonPassVal(this.forArrSelectDiv, "项目状态", "0", "son_parent"); // 复位项目状态筛选框
+                } else {
+                    this.search.project_status = "3";
+                    parentSonPassVal(this.forArrSelectDiv, "项目状态", "3", "son_parent"); // 复位项目状态筛选框
+                }
                 if (data.init) {
                     this.searchOperation();
                 }

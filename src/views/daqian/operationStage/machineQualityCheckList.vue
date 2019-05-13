@@ -23,6 +23,13 @@
                             :resetselectProjectData="resetselectProjectData"></selectProject>
                     </div>
                     <div class="selectDiv">
+                        <span class="align-right">机检类型：</span>
+                        <el-select size="medium" v-model="search.MachineCheckType" clearable placeholder="全部">
+                            <el-option value="1" label="常规质检"></el-option>
+                            <el-option value="2" label="差分质检"></el-option>
+                        </el-select>
+                    </div>
+                    <div class="selectDiv">
                         <span class="align-right">机检状态：</span>
                         <el-select size="medium" v-model="search.selectState" clearable placeholder="全部">
                             <el-option value="2" label="排队中"></el-option>
@@ -93,6 +100,7 @@
                 <el-tooltip content="机检失败或未开始的可以批量跳过" placement="left" effect="light">
                     <el-button class="right-div" type="primary" size="medium" :disabled="accessDisabled" @click="skipMachineCheck()">批量跳过</el-button>
                 </el-tooltip>
+                <el-button class="right-div" type="primary" size="medium" @click="downloadLogs()" :disabled="accessDisabled">log批量下载</el-button>
             </div>
             <!-- 按钮区 end-->
             <div class="segmenting-line"></div>
@@ -112,7 +120,9 @@
                     <el-table-column fixed prop="origin_operation_task_id" show-overflow-tooltip label="所属任务包编号" width="120"></el-table-column>
                     <el-table-column prop="show_sub_project_name" show-overflow-tooltip label="所属子项目" width="120"></el-table-column>
                     <el-table-column prop="show_handle_segment" show-overflow-tooltip label="机检环节" width="135"></el-table-column>
+                    <el-table-column prop="show_mc_type" show-overflow-tooltip label="机检类型" width="80"></el-table-column>
                     <el-table-column prop="show_handle_status" label="机检状态" show-overflow-tooltip width="95"></el-table-column>
+                    <el-table-column prop="show_diff_server_status" label="差分状态" show-overflow-tooltip width="95"></el-table-column>
                     <el-table-column prop="show_project_status" label="项目状态" show-overflow-tooltip width="80"></el-table-column>
                     <el-table-column prop="operation_task_id" show-overflow-tooltip label="关联作业任务编号" width="135"></el-table-column>
                     <el-table-column prop="show_task_type" label="关联作业类型" show-overflow-tooltip width="105"></el-table-column>
@@ -121,6 +131,9 @@
                     <el-table-column prop="tile_id_list" label="任务网格" show-overflow-tooltip min-width="80"></el-table-column>
                     <el-table-column prop="start_time" label="机检开始时间" sortable="custom" show-overflow-tooltip width="180"></el-table-column>
                     <el-table-column prop="end_time" label="机检结束时间" sortable="custom" show-overflow-tooltip width="180"></el-table-column>
+                    <el-table-column prop="mc_server_task_id" label="机检服务任务编号" show-overflow-tooltip width="135"></el-table-column>
+                    <el-table-column prop="log_data_version" label="质检log版本" show-overflow-tooltip width="135"></el-table-column>
+                    <el-table-column prop="diff_log_data_version" label="差分log版本" show-overflow-tooltip width="135"></el-table-column>
                 </el-table>
             </div>
             <!-- 表格分页 begin-->
@@ -148,6 +161,34 @@
             </el-form>
         </el-dialog>
         <!-- 批量跳过 end-->
+        <!-- Log批量下载 begin-->
+        <el-dialog title="log批量下载" :visible.sync="dialogDownloadLogVisible" :close-on-click-modal="false">
+            <el-form ref="downloadLogData" :model="downloadLogData" label-width="120px" class="demo-dynamic" v-loading="downloadLoading" element-loading-text="拼命下载中">
+                <el-form-item label="机检任务列表" required prop="taskIDS" :rules="[{ required: true, message: '请选择要下载log的机检任务', trigger: 'blur'},{ required: true, message: '请选择要下载准入log的机检任务', trigger: 'change'}]">
+                    <el-input type="textarea" readonly placeholder="请选择要下载log的机检任务" :autosize="{ minRows: 5, maxRows: 5}"
+                        v-model="downloadLogData.taskIDS"></el-input>
+                </el-form-item>
+                <p class="tipInfo">提示：已选择<b>{{downloadLogData.postTaskIDS.length}}</b>条记录（去重后）,选择任务的log将合并为一个文件下载</p>
+                <el-form-item label="文件类型" required style="margin-bottom: 10px">
+                    <div style="float:left;display:inline-block;">
+                        <el-radio v-model="downloadLogData.fileType" label="qc">质检log</el-radio>
+                        <el-radio v-model="downloadLogData.fileType" label="diff" :disabled="search.selectSection === '3001'">差分log</el-radio>
+                    </div>
+                </el-form-item>
+                <el-form-item label="文件格式" required style="margin-bottom: 10px">
+                    <div style="float:left;display:inline-block;">
+                        <el-radio v-model="downloadLogData.fileFormat" label="csv">csv格式</el-radio>
+                        <el-radio v-model="downloadLogData.fileFormat" label="pb">proto格式</el-radio>
+                    </div>
+                </el-form-item>
+                <el-form-item>
+                    <el-button type="primary" @click="submitDownloadLogForm()">确定</el-button>
+                    <!--<el-button @click="resetForm('inSubProject')">重置</el-button>-->
+                    <el-button @click="dialogDownloadLogVisible = false">取消</el-button>
+                </el-form-item>
+            </el-form>
+        </el-dialog>
+        <!-- Log批量下载 end-->
     </div>
 </template>
 
@@ -173,7 +214,7 @@
                 forArrSelectDiv: [{
                         // v_s:这个是daqian_selectCheck.vue组件下拉菜单的数据结构
                         name: "项目状态",
-                        objectType: "3", // v_s: 这个是项目状态的默认值
+                        objectType: "0", // v_s: 这个是项目状态的默认值
                         showBoxType: "el-select", // v_s:判断要渲染的标签类型
                         AllTypesSelect: {
                             "0": "全部",
@@ -195,10 +236,11 @@
                     selectState: "",
                     selectResult: "",
                     origintaskID: "",
+                    MachineCheckType: "",
                     tileID: "",
                     selectTaskType: "",
                     qualityNumber: "",
-                    sort_field_name: "quality_check_task_id desc"
+                    sort_field_name: "machine_check_task_id desc"
                 },
                 searchDatas: {},
                 filter: {
@@ -210,6 +252,7 @@
                 accessDisabled: false,
                 machinemachineQualityCheckTasksTable: [],
                 nowSelectSubprojectID: 0,
+                nowSelectSection: '130',
                 multipleMachineTaskSelection: [],
                 dialogSkipMachineCheckVisible: false,
                 skipMachineCheckData: {
@@ -223,6 +266,14 @@
                 resetselectProjectData: false, //是否重置子项目信息 fasle 不重置 true 重置
                 loading: true,
                 emptyText: "查询中",
+                downloadLoading: false,
+                downloadLogData: {
+                    taskIDS: "",
+                    postTaskIDS: [],
+                    fileFormat: 'csv',
+                    fileType: 'qc'
+                },
+                dialogDownloadLogVisible: false,
                 selectNumber: 0,
                 selectAllFlag: false,
                 allTableData: [],
@@ -296,6 +347,16 @@
                             } else if (val.task_type === "33") {
                                 val.show_task_type = "二检返修作业";
                             }
+                            if (val.mc_type == '1') {
+                                val.show_mc_type = '常规质检';
+                            } else if (val.mc_type == '2'){
+                                val.show_mc_type = '差分质检';
+                            }
+                            if (val.diff_server_status == '1') {
+                                val.show_diff_server_status = '成功';
+                            } else if (val.diff_server_status == '2') {
+                                val.show_diff_server_status = '失败';
+                            }
                         }
                     }
                     // return this.machinemachineQualityCheckTasksTable.slice(
@@ -347,6 +408,7 @@
                     task_type: this.search.selectTaskType,
                     tile_id_list: this.search.tileID,
                     origin_operation_task_id_list: this.search.origintaskID,
+                    mc_type: this.search.MachineCheckType,
                     sort_field_name: this.search.sort_field_name,
                     page_index: this.filter.currentPage,
                     page_size: this.filter.perPage,
@@ -354,6 +416,7 @@
                 };
                 this.onSubjectStatus = reQpassVal(this.forArrSelectDiv, '项目状态');
                 this.nowSelectSubprojectID = this.search.selectSubprojectID;
+                this.nowSelectSection = this.search.selectSection;
                 if (!(arg && arg.loading)) {
                     if (!(arg && arg.return_all)) {
                         this.machinemachineQualityCheckTasksTable = [];
@@ -435,10 +498,16 @@
                 this.search.origintaskID = "";
                 this.search.selectTaskType = "";
                 this.$refs.machinemachineQualityCheckTasksTables.clearSort();
-                this.search.sort_field_name = "quality_check_task_id desc";
+                this.search.sort_field_name = "machine_check_task_id desc";
                 if (event !== "sectionChange") {
-                    // v_s: 方法参数 1、要遍历的数组2、要赋值的对象名称3、要赋的值4、赋值的方向（子传父，父传子）
-                    parentSonPassVal(this.forArrSelectDiv, '项目状态', '3', 'son_parent');
+                    // gu：当所属项目为主项目或全部时，项目状态为进行中；当为子项目时项目状态为全部
+                    if(validateData(this.search.selectSubprojectID)){
+                        this.search.project_status = "0";
+                        parentSonPassVal(this.forArrSelectDiv, "项目状态", "0", "son_parent"); // 复位项目状态筛选框
+                    } else {
+                        this.search.project_status = "3";
+                        parentSonPassVal(this.forArrSelectDiv, "项目状态", "3", "son_parent"); // 复位项目状态筛选框
+                    }
                     this.search.tileID = "";
                     this.resetselectProjectData = true;
                 } else {
@@ -485,6 +554,21 @@
                     alertInfo(this, "warning", "请选择要批量跳过的机检任务");
                 }
             },
+            downloadLogs: function () {
+                if (!validateData(this.nowSelectSubprojectID)) {
+                    alertInfo(this, "warning", "请先选择一个子项目并进行筛选");
+                    return;
+                }
+                let selectData = this.getSelectDatas();
+                if (validateData(selectData.machineCheckTaskIDS)) {
+                    this.downloadLogData.postTaskIDS = [].concat(JSON.parse(JSON.stringify(selectData.postMachineCheckTaskIDS)));
+                    this.downloadLogData.taskIDS = selectData.machineCheckTaskIDS;
+                    this.dialogDownloadLogVisible = true;
+                    this.downloadLoading = false;
+                } else {
+                    alertInfo(this, "warning", "请选择要下载log的任务");
+                }
+            },
             getSelectDatas: function () {
                 let machineCheckTaskIDS = "";
                 let postMachineCheckTaskIDS = [];
@@ -521,10 +605,43 @@
                                 if (data.errno === 0) {
                                     alertInfo(this, "success", "成功跳过机检任务", () => {
                                         this.dialogSkipMachineCheckVisible = false;
-                                        this.searchMachineQualityCheckTasks();
+                                        this.onSearch();
                                     });
                                 } else {
                                     alertInfo(this, "error", "跳过机检任务失败，" + data.msg);
+                                }
+                            });
+                    }
+                });
+            },
+            submitDownloadLogForm: function () {
+                this.$refs["downloadLogData"].validate(valid => {
+                    if (valid) {
+                        this.downloadLoading = true;
+                        var postDownloadLogData = {
+                            user_id: sessionStorage.userid,
+                            sub_project_id: this.nowSelectSubprojectID,
+                            process_segment: this.nowSelectSection,
+                            format: this.downloadLogData.fileFormat,
+                            type: this.downloadLogData.fileType,
+                            mqc_task_list: this.downloadLogData.postTaskIDS
+                        };
+                        this.$http.post("/api/generate_log_download_url", postDownloadLogData).then(
+                            response => {
+                                response = response.body;
+                                var data = response.data;
+                                this.downloadLoading = false;
+                                if (data.errno === 0) {
+                                    alertInfo(
+                                        this,
+                                        "success",
+                                        "log下载成功，<a class='a-download' href=" + data.data.log_download_url + ">点击保存</a>",
+                                        () => {
+                                            this.dialogDownloadLogVisible = false;
+                                        }
+                                    );
+                                } else {
+                                    alertInfo(this, "error", "log下载失败，" + data.msg);
                                 }
                             });
                     }
@@ -536,7 +653,7 @@
                 } else if (val.order === "ascending") {
                     this.search.sort_field_name = val.prop + " asc";
                 } else {
-                    this.search.sort_field_name = "quality_check_task_id desc";
+                    this.search.sort_field_name = "machine_check_task_id desc";
                 }
                 this.onSearch();
             },
@@ -574,6 +691,14 @@
             SelectProjects: function (data) {
                 this.search.selectProjectID = data.project_id;
                 this.search.selectSubprojectID = data.sub_project_id;
+                 // gu：当所属项目为主项目或全部时，项目状态为进行中；当为子项目时项目状态为全部
+                if(validateData(this.search.selectSubprojectID)){
+                    this.search.project_status = "0";
+                    parentSonPassVal(this.forArrSelectDiv, "项目状态", "0", "son_parent"); // 复位项目状态筛选框
+                } else {
+                    this.search.project_status = "3";
+                    parentSonPassVal(this.forArrSelectDiv, "项目状态", "3", "son_parent"); // 复位项目状态筛选框
+                }
                 if (data.init) {
                     this.searchMachineQualityCheckTasks();
                 }
